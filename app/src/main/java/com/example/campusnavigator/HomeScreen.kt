@@ -27,7 +27,8 @@ val listOfAlgorithms = listOf<AlgorithmItem>(
     AlgorithmItem("genetic", "Genetic"),
     AlgorithmItem("ant", "Ant"),
     AlgorithmItem("decisionTree", "Decision tree"),
-    AlgorithmItem("neural", "Neural")
+    AlgorithmItem("neural", "Neural"),
+    AlgorithmItem("map", "Map")
 )
 
 @OptIn(ExperimentalMaterial3Api::class)

@@ -24,7 +24,7 @@ class MainActivity : ComponentActivity() {
                     composable("ant") { AntScreen(navController) }
                     composable("decisionTree") { DecisionTreeScreen(navController) }
                     composable("neural") { NeuralScreen(navController) }
-
+                    composable("map") { BitmapScreen() }
                 }
             }
         }
