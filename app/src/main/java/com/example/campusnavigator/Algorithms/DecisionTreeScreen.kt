@@ -1,4 +1,4 @@
-package com.example.campusnavigator
+package com.example.campusnavigator.Algorithms
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun AntScreen(navController: NavController) {
+fun DecisionTreeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -25,6 +25,6 @@ fun AntScreen(navController: NavController) {
             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
 
-        Text("Ant Algorithm", Modifier.align(Alignment.Center))
+        Text("Decision tree Algorithm", Modifier.align(Alignment.Center))
     }
 }

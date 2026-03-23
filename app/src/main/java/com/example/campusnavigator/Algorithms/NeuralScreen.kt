@@ -1,4 +1,4 @@
-package com.example.campusnavigator
+package com.example.campusnavigator.Algorithms
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 
 @Composable
-fun DecisionTreeScreen(navController: NavController) {
+fun NeuralScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
@@ -25,6 +25,6 @@ fun DecisionTreeScreen(navController: NavController) {
             Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
 
-        Text("Decision tree Algorithm", Modifier.align(Alignment.Center))
+        Text("Neural Algorithm", Modifier.align(Alignment.Center))
     }
 }

@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
+import com.example.campusnavigator.Algorithms.AlgorithmItem
 
 val listOfAlgorithms = listOf<AlgorithmItem>(
     AlgorithmItem("astar", "Astar"),

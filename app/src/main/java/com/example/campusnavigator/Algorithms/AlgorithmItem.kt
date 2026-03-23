@@ -1,4 +1,4 @@
-package com.example.campusnavigator
+package com.example.campusnavigator.Algorithms
 
 data class AlgorithmItem(
     val route: String,
