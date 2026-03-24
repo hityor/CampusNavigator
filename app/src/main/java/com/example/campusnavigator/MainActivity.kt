@@ -1,5 +1,6 @@
 package com.example.campusnavigator
 
+import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -19,11 +20,12 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import androidx.lifecycle.lifecycleScope
-import org.maplibre.geojson.FeatureCollection
+import org.maplibre.android.geometry.LatLngQuad
 
 class MainActivity : ComponentActivity() {
     private val gridMapState = mutableStateOf<GridMap?>(null)
-    private val gridFeaturesState = mutableStateOf<FeatureCollection?>(null)
+    private val gridBitmapState = mutableStateOf<Bitmap?>(null)
+    private val gridQuadState = mutableStateOf<LatLngQuad?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -32,11 +34,13 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             val myGrid = makeGridFromCsv("grid_passability.csv", this@MainActivity)
-            val gridFeatures = myGrid.generateFeatures()
+            val bitmap = myGrid.createGridBitMap()
+            val quad = myGrid.getLatLngQuad()
 
             withContext(Dispatchers.Main) {
                 gridMapState.value = myGrid
-                gridFeaturesState.value = gridFeatures
+                gridBitmapState.value = bitmap
+                gridQuadState.value = quad
             }
         }
 
@@ -44,16 +48,17 @@ class MainActivity : ComponentActivity() {
         setContent {
             CampusNavigatorTheme {
                 val grid = gridMapState.value
-                val features = gridFeaturesState.value
+                val bitmap = gridBitmapState.value
+                val quad = gridQuadState.value
 
-                if (grid == null || features == null) {
+                if (grid == null || bitmap == null || quad == null) {
                     SplashScreen()
                 }
                 else {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "home") {
                         composable("home") { HomeScreen(navController) }
-                        composable("map") {MapScreen(gridMap = grid, gridFeatures = features)}
+                        composable("map") {MapScreen(gridMap = grid, gridBitMap = bitmap, latLngQuad = quad)}
                         composable("astar") { AStarScreen(navController) }
                         composable("clustering") { ClusteringScreen(navController) }
                         composable("genetic") { GeneticScreen(navController) }

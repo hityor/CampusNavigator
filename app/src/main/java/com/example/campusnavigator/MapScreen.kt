@@ -1,5 +1,6 @@
 package com.example.campusnavigator
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
@@ -19,12 +20,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.material3.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.Alignment
-import org.maplibre.geojson.FeatureCollection
+import org.maplibre.android.geometry.LatLngQuad
 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MapScreen(gridMap: GridMap, gridFeatures: FeatureCollection) {
+fun MapScreen(gridMap: GridMap, gridBitMap: Bitmap, latLngQuad: LatLngQuad) {
     val scaffoldState = rememberBottomSheetScaffoldState()
 
     BottomSheetScaffold(
@@ -66,7 +67,8 @@ fun MapScreen(gridMap: GridMap, gridFeatures: FeatureCollection) {
 
         MapViewContainer(
             gridMap = gridMap,
-            gridFeatures = gridFeatures,
+            gridBitmap = gridBitMap,
+            latLngQuad = latLngQuad,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
@@ -75,7 +77,7 @@ fun MapScreen(gridMap: GridMap, gridFeatures: FeatureCollection) {
 }
 
 @Composable
-fun MapViewContainer(gridMap: GridMap, gridFeatures: FeatureCollection, modifier: Modifier = Modifier) {
+fun MapViewContainer(gridMap: GridMap, gridBitmap: Bitmap, latLngQuad: LatLngQuad, modifier: Modifier = Modifier) {
     val context = LocalContext.current
     remember { MapLibre.getInstance(context) }
 
@@ -87,16 +89,15 @@ fun MapViewContainer(gridMap: GridMap, gridFeatures: FeatureCollection, modifier
                 getMapAsync { map ->
                     map.setStyle("https://tiles.openfreemap.org/styles/liberty") { style ->
 
-                        val geoJsonSource = org.maplibre.android.style.sources.GeoJsonSource("grid-source", gridFeatures)
-                        style.addSource(geoJsonSource)
-
-                        val circleLayer = org.maplibre.android.style.layers.CircleLayer("grid-layer", "grid-source")
-                        circleLayer.setProperties(
-                            org.maplibre.android.style.layers.PropertyFactory.circleColor(android.graphics.Color.GREEN),
-                            org.maplibre.android.style.layers.PropertyFactory.circleRadius(4f),
-                            org.maplibre.android.style.layers.PropertyFactory.circleOpacity(0.6f)
+                        val imageSource = org.maplibre.android.style.sources.ImageSource(
+                            "grid-mask-source",
+                            latLngQuad,
+                            gridBitmap
                         )
-                        style.addLayer(circleLayer)
+                        style.addSource(imageSource)
+
+                        val rasterLayer = org.maplibre.android.style.layers.RasterLayer("grid-mask-layer", "grid-mask-source")
+                        style.addLayer(rasterLayer)
                     }
 
                     map.addOnMapClickListener { point ->

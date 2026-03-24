@@ -3,9 +3,12 @@ package com.example.campusnavigator
 import android.content.Context
 import org.maplibre.android.geometry.LatLng
 import kotlin.math.*
-import org.maplibre.geojson.Feature
-import org.maplibre.geojson.FeatureCollection
-import org.maplibre.geojson.Point
+import android.graphics.Bitmap
+import android.graphics.Color
+import org.maplibre.android.geometry.LatLngQuad
+import android.graphics.Paint
+import android.graphics.Canvas
+import androidx.core.graphics.createBitmap
 
 class PassabilityPoint(
     val x: Double,
@@ -24,19 +27,45 @@ class GridMap(
     val cellSize: Double
 )
 
-fun GridMap.generateFeatures(): FeatureCollection {
-    val features = mutableListOf<Feature>()
-    for (r in 0 until height) {
-        for (c in 0 until width) {
-            if (grid[r][c] == 1) {
-                val lon = minX + (c * cellSize)
-                val lat = maxY - (r * cellSize)
-                val point = Point.fromLngLat(lon, lat)
-                features.add(Feature.fromGeometry(point))
-            }
-        }
+fun GridMap.createGridBitMap(): Bitmap {
+    val scale = 10
+    val bmpW = width * scale
+    val bmpH = height * scale
+
+
+    val bitmap = createBitmap(bmpW, bmpH)
+
+    val canvas = Canvas(bitmap)
+    val paint = Paint().apply {
+        color = Color.argb(130, 0, 0, 0)
+        style = Paint.Style.STROKE
+        strokeWidth = 1f
     }
-    return FeatureCollection.fromFeatures(features)
+
+    for (i in 0..width) {
+        val x = i * scale.toFloat()
+        canvas.drawLine(x, 0f, x, bmpH.toFloat(), paint)
+    }
+    for (i in 0..height) {
+        val y = i * scale.toFloat()
+        canvas.drawLine(0f, y, bmpW.toFloat(), y, paint)
+    }
+
+    return bitmap
+}
+
+fun GridMap.getLatLngQuad(): LatLngQuad {
+    val left = minX
+    val right = minX + (width * cellSize)
+    val top = maxY
+    val bottom = maxY - (height * cellSize)
+
+    return LatLngQuad(
+        epsg3857ToLatLng(left, top),
+        epsg3857ToLatLng(right, top),
+        epsg3857ToLatLng(right, bottom),
+        epsg3857ToLatLng(left, bottom)
+    )
 }
 
 fun readPointsFromCsv(fileName: String, context: Context): List<PassabilityPoint> {
