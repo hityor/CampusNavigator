@@ -1,5 +1,7 @@
-package com.example.campusnavigator
+package com.example.campusnavigator.Algorithms
 
+import com.example.campusnavigator.GridCell
+import com.example.campusnavigator.GridMap
 import kotlin.math.abs
 
 fun heuristic(a: GridCell, b: GridCell): Int {
