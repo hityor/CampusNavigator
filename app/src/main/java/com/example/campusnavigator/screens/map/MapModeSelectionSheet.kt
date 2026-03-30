@@ -1,5 +1,6 @@
 package com.example.campusnavigator.screens.map
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -9,6 +10,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -16,14 +18,14 @@ import androidx.compose.ui.unit.dp
 fun MapModeSelectionSheet(
     onDismiss: () -> Unit,
     onModeSelected: (MapMode) -> Unit,
-    onClearMap: () -> Unit
+    onResetModeState: () -> Unit
 ) {
     ModalBottomSheet(
         onDismissRequest = onDismiss
     ) {
         ModeSelectionContent { mode ->
+            onResetModeState()
             onModeSelected(mode)
-            onClearMap()
             onDismiss()
         }
     }
@@ -36,8 +38,16 @@ fun ModeSelectionContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(8.dp)
+            .padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+
     ) {
+        Text(
+            text = "Выберите режим",
+            modifier = Modifier.fillMaxWidth(),
+            textAlign = TextAlign.Center
+        )
+
         MapMode.entries.forEach { entry ->
             Button(onClick = { onModeSelected(entry) }, modifier = Modifier.fillMaxWidth()) {
                 Text(text = entry.title)

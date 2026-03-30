@@ -3,7 +3,9 @@ package com.example.campusnavigator.screens.map
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -34,6 +36,9 @@ fun MapViewContainer(
 ) {
     val context = LocalContext.current
     remember { MapLibre.getInstance(context) }
+
+    val currentModeState by rememberUpdatedState(currentMode)
+    val onCellSelectedState by rememberUpdatedState(onCellSelected)
 
     AndroidView(modifier = modifier, update = { mapView ->
         mapView.getMapAsync { map ->
@@ -72,9 +77,12 @@ fun MapViewContainer(
 
                     val selectedCell = findNearestWalkableCell(tappedCell, gridMap, maxRadius = 3)
 
-                    if (selectedCell != null) {
-                        onCellSelected(selectedCell)
+                    if (currentModeState == MapMode.ASTAR) {
+                        if (selectedCell != null) {
+                            onCellSelectedState(selectedCell)
+                        }
                     }
+
                     true
                 }
 

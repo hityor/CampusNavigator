@@ -15,7 +15,11 @@ import com.example.campusnavigator.GridCell
 
 @Composable
 fun AStarSheetContent(
-    startCell: GridCell?, finishCell: GridCell?, onBuildRoute: () -> Unit, onClear: () -> Unit
+    startCell: GridCell?,
+    finishCell: GridCell?,
+    routeMessage: String?,
+    onBuildRoute: () -> Unit,
+    onClear: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -58,6 +62,11 @@ fun AStarSheetContent(
             enabled = startCell != null || finishCell != null
         ) {
             Text("Очистить")
+        }
+
+        if (routeMessage != null) {
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(routeMessage)
         }
 
     }
