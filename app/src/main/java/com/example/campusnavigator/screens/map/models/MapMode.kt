@@ -1,4 +1,4 @@
-package com.example.campusnavigator.screens.map
+package com.example.campusnavigator.screens.map.models
 
 enum class MapMode(val title: String) {
     ASTAR("Навигация (A*)"),

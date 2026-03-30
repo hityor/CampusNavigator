@@ -25,9 +25,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.campusnavigator.Algorithms.findPath
+import com.example.campusnavigator.algorithms.findPath
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
+import com.example.campusnavigator.screens.map.models.MapMode
 import org.maplibre.android.geometry.LatLngQuad
 
 @OptIn(ExperimentalMaterial3Api::class)

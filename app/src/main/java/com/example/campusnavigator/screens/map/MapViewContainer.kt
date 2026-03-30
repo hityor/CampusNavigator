@@ -14,6 +14,7 @@ import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.LatLngToEpsg3857
 import com.example.campusnavigator.epsg3857ToGridCell
 import com.example.campusnavigator.findNearestWalkableCell
+import com.example.campusnavigator.screens.map.models.MapMode
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng

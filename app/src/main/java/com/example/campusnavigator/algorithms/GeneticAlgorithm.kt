@@ -1,0 +1,4 @@
+package com.example.campusnavigator.algorithms
+
+class GeneticAlgorithm {
+}
