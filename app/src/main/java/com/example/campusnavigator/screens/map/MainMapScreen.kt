@@ -1,6 +1,7 @@
 package com.example.campusnavigator.screens.map
 
 import android.graphics.Bitmap
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -34,6 +35,8 @@ import org.maplibre.android.geometry.LatLngQuad
 fun MainMapScreen(
     gridMap: GridMap, gridBitmap: Bitmap, latLngQuad: LatLngQuad, navController: NavController
 ) {
+    BackHandler(enabled = true) { }
+
     val scaffoldState = rememberBottomSheetScaffoldState()
 
     var currentMode by remember { mutableStateOf(MapMode.ASTAR) }
