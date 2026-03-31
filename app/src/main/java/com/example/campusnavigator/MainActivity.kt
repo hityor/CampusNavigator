@@ -10,6 +10,8 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.campusnavigator.Algorithms.NeuralAlgorithm
+import com.example.campusnavigator.screens.DrawingBottomSheet
 import com.example.campusnavigator.screens.HomeScreen
 import com.example.campusnavigator.screens.map.MainMapScreen
 import com.example.campusnavigator.screens.SplashScreen
@@ -29,6 +31,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         MapLibre.getInstance(this)
         enableEdgeToEdge()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            NeuralAlgorithm.initialize(applicationContext)
+        }
 
         lifecycleScope.launch(Dispatchers.IO) {
             val myGrid = makeGridFromCsv("grid_passability.csv", this@MainActivity)
@@ -63,11 +69,25 @@ class MainActivity : ComponentActivity() {
                                 navController
                             )
                         }
-                        composable("decisionTree") {  }
+                        composable("decisionTree") {
+                            DrawingBottomSheet(
+                                onDismiss = { navController.popBackStack() },
+                                onSubmitted = { rating ->
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
                     }
                 }
 
             }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycleScope.launch(Dispatchers.IO) {
+            NeuralAlgorithm.close()
         }
     }
 }
