@@ -4,8 +4,10 @@ import android.graphics.Color
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.gridCellToLatLng
+import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.annotations.PolylineOptions
+import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
 
 fun renderAStar(
@@ -36,6 +38,19 @@ fun renderAStar(
 
         map.addPolyline(
             PolylineOptions().addAll(pathPoints).width(3f).color(Color.BLUE)
+        )
+    }
+}
+
+fun renderClustering(
+    map: MapLibreMap,
+    clusteredPlaces: List<ClusteredFoodPlace>
+) {
+    clusteredPlaces.forEach { item ->
+        map.addMarker(
+            MarkerOptions()
+                .position(LatLng(item.place.lat, item.place.lon))
+                .title("${item.place.name}. кластер ${item.clusterIndex + 1}")
         )
     }
 }

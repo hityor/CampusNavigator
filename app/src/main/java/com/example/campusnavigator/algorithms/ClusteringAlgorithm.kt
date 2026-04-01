@@ -11,6 +11,15 @@ data class ClusterCenter(
     val lon: Double
 )
 
+private fun distance(
+    lat1: Double,
+    lon1: Double,
+    lat2: Double,
+    lon2: Double,
+): Double {
+    return sqrt((lat1 - lat2).pow(2) + (lon1 - lon2).pow(2))
+}
+
 fun runKMeans(
     places: List<FoodPlace>,
     k: Int,
@@ -55,13 +64,4 @@ fun runKMeans(
             clusterIndex = assignments[idx]
         )
     }
-}
-
-private fun distance(
-    lat1: Double,
-    lon1: Double,
-    lat2: Double,
-    lon2: Double,
-): Double {
-    return sqrt((lat1 - lat2).pow(2) + (lon1 - lon2).pow(2))
 }
