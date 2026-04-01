@@ -49,7 +49,7 @@ fun MapViewContainer(
 
             when (currentMode) {
                 MapMode.ASTAR -> renderAStar(map, gridMap, startCell, finishCell, path)
-                MapMode.CLUSTERING -> {renderClustering(map, clusteredPlaces)}
+                MapMode.CLUSTERING -> {renderClustering(map,  context, clusteredPlaces)}
                 MapMode.GENETIC -> {}
                 MapMode.ANT -> {}
                 MapMode.COWORKING -> {}

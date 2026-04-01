@@ -35,7 +35,7 @@ fun ClusteringSheetContent(
                 Text("-")
             }
 
-            Button(onClick = { if (clusterCount < 8) onClusterCountChange(clusterCount + 1) }) {
+            Button(onClick = { if (clusterCount < 6) onClusterCountChange(clusterCount + 1) }) {
                 Text("+")
             }
         }
