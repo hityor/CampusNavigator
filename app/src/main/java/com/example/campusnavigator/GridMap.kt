@@ -1,14 +1,19 @@
 package com.example.campusnavigator
 
 import android.content.Context
-import org.maplibre.android.geometry.LatLng
-import kotlin.math.*
 import android.graphics.Bitmap
-import android.graphics.Color
-import org.maplibre.android.geometry.LatLngQuad
-import android.graphics.Paint
 import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import androidx.core.graphics.createBitmap
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.geometry.LatLngQuad
+import kotlin.math.PI
+import kotlin.math.atan
+import kotlin.math.exp
+import kotlin.math.ln
+import kotlin.math.roundToInt
+import kotlin.math.tan
 
 class PassabilityPoint(
     val x: Double,
@@ -73,7 +78,7 @@ fun readPointsFromCsv(fileName: String, context: Context): List<PassabilityPoint
 
     context.assets.open(fileName)
         .bufferedReader()
-        .useLines() { lines ->
+        .useLines { lines ->
             lines.drop(1).forEach { line ->
                 if (line.isNotBlank()) {
                     val parts = line.split(",")
