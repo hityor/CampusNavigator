@@ -68,6 +68,7 @@ val homeSections = listOf<HomeSectionItem>(
 @Composable
 fun HomeScreen(navController: NavController) {
     Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("Навигатор ТГУ", color = Color.White) },
@@ -86,18 +87,17 @@ fun HomeScreen(navController: NavController) {
                 modifier = Modifier
                     .fillMaxWidth()
                     .background(NavyPrimary)
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                Column {
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)) {
                     Text(
-                        "Томский государтсвенный университет",
+                        "Томский государственный университет",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.65f)
+                        color = Color.White.copy(alpha = 0.75f)
                     )
-                    Spacer(Modifier.height(2.dp))
+                    Spacer(Modifier.height(4.dp))
                     Text(
                         text = "Добро пожаловать",
-                        style = MaterialTheme.typography.titleMedium,
+                        style = MaterialTheme.typography.headlineSmall,
                         color = Color.White
                     )
                 }
@@ -106,7 +106,7 @@ fun HomeScreen(navController: NavController) {
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
@@ -134,7 +134,7 @@ fun HomeCard(item: HomeSectionItem, onClick: () -> Unit) {
     Card(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(12.dp),
+        shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White
         ),
@@ -143,21 +143,21 @@ fun HomeCard(item: HomeSectionItem, onClick: () -> Unit) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 22.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(color = NavyPrimary, shape = RoundedCornerShape(10.dp)),
+                    .size(52.dp)
+                    .background(color = NavyPrimary, shape = RoundedCornerShape(12.dp)),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = item.icon,
                     contentDescription = null,
                     tint = Color.White,
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(22.dp)
                 )
             }
 
@@ -167,7 +167,7 @@ fun HomeCard(item: HomeSectionItem, onClick: () -> Unit) {
                     style = MaterialTheme.typography.titleSmall,
                     color = NavyPrimary
                 )
-                Spacer(Modifier.height(2.dp))
+                Spacer(Modifier.height(4.dp))
                 Text(
                     text = item.subtitle,
                     style = MaterialTheme.typography.bodySmall,
