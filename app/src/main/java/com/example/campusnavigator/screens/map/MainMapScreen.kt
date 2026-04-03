@@ -72,7 +72,12 @@ fun MainMapScreen(
     }
 
     BottomSheetScaffold(topBar = {
-        CenterAlignedTopAppBar(title = { Text(currentMode.title) }, navigationIcon = {
+        CenterAlignedTopAppBar(title = {
+            Text(
+                text = currentMode.title,
+                style = MaterialTheme.typography.headlineSmall
+            )
+        }, navigationIcon = {
             IconButton(onClick = { navController.popBackStack() }) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Назад"
@@ -120,6 +125,7 @@ fun MainMapScreen(
             MapMode.CLUSTERING -> {
                 ClusteringSheetContent(
                     clusterCount = clusterCount,
+                    clusteredPlaces = clusteredPlaces,
                     onClusterCountChange = { clusterCount = it },
                     onRun = {
                         clusteredPlaces = runKMeans(sampleFoodPlaces, clusterCount)

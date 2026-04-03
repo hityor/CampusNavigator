@@ -4,17 +4,17 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import androidx.core.graphics.createBitmap
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.gridCellToLatLng
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
+import org.maplibre.android.annotations.IconFactory
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.annotations.PolylineOptions
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
-import androidx.core.graphics.createBitmap
-import android.graphics.Paint
-import org.maplibre.android.annotations.IconFactory
 
 fun renderAStar(
     map: MapLibreMap,
@@ -50,29 +50,41 @@ fun renderAStar(
 
 fun getColorForCluster(index: Int): Int {
     val colors = listOf(
-        android.graphics.Color.RED,
-        android.graphics.Color.BLUE,
-        android.graphics.Color.GREEN,
-        android.graphics.Color.YELLOW,
-        android.graphics.Color.MAGENTA,
-        android.graphics.Color.CYAN
+        Color.RED,
+        Color.BLUE,
+        Color.GREEN,
+        Color.YELLOW,
+        Color.MAGENTA,
+        Color.CYAN
     )
 
     return colors[index % colors.size]
 }
 
 fun createMarkerBitmap(color: Int): Bitmap {
-    val size = 100
-
+    val size = 80
     val bitmap = createBitmap(size, size)
     val canvas = Canvas(bitmap)
 
-    val paint = Paint().apply {
+    val shadowPaint = Paint().apply {
         this.color = color
         isAntiAlias = true
     }
+    canvas.drawCircle(size / 2f, size / 2f + 3f, size / 2.6f, shadowPaint)
 
-    canvas.drawCircle(size / 2f, size / 2f, size / 2.5f, paint)
+    val fillPaint = Paint().apply {
+        this.color = color
+        isAntiAlias = true
+    }
+    canvas.drawCircle(size / 2f, size / 2f, size / 2.8f, fillPaint)
+
+    val borderPaint = Paint().apply {
+        this.color = Color.WHITE
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+        strokeWidth = 5f
+    }
+    canvas.drawCircle(size / 2f, size / 2f, size / 2.8f, borderPaint)
 
     return bitmap
 }
