@@ -27,22 +27,14 @@ fun SplashScreen() {
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Image(
-                painter = painterResource(id = R.drawable.tgu_logo),
+                painter = painterResource(id = R.drawable.tsu_logo),
                 contentDescription = "Логотип ТГУ",
                 modifier = Modifier
-                    .size(150.dp)
+                    .size(300.dp)
                     .padding(bottom = 24.dp),
                 contentScale = ContentScale.Fit
             )
-
-            Text(
-                text = "УВЫ",
-                style = MaterialTheme.typography.headlineMedium,
-                color = Color(0xFF007D3E)
-            )
-
             Spacer(modifier = Modifier.height(32.dp))
-
         }
     }
 }
