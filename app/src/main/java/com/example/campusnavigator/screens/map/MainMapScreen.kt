@@ -27,7 +27,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import com.example.campusnavigator.Algorithms.findPath
+import com.example.campusnavigator.algorithms.findPath
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.ui.theme.NavyPrimary

@@ -10,7 +10,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.campusnavigator.Algorithms.NeuralAlgorithm
+import com.example.campusnavigator.algorithms.NeuralAlgorithm
 import com.example.campusnavigator.screens.DrawingBottomSheet
 import com.example.campusnavigator.screens.HomeScreen
 import com.example.campusnavigator.screens.SplashScreen
