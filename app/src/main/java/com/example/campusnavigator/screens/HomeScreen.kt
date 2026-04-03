@@ -39,6 +39,11 @@ val homeSections = listOf<HomeSectionItem>(
         route = "decisionTree",
         title = "Выбор места для обеда",
         subtitle = "Подбор заведения по параметрам"
+    ),
+    HomeSectionItem(
+        route = "neural",
+        title = "Оценка",
+        subtitle = "Распознавание цифр от 0 до 9"
     )
 )
 

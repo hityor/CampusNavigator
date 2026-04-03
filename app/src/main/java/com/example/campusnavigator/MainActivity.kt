@@ -13,8 +13,8 @@ import androidx.navigation.compose.rememberNavController
 import com.example.campusnavigator.Algorithms.NeuralAlgorithm
 import com.example.campusnavigator.screens.DrawingBottomSheet
 import com.example.campusnavigator.screens.HomeScreen
-import com.example.campusnavigator.screens.map.MainMapScreen
 import com.example.campusnavigator.screens.SplashScreen
+import com.example.campusnavigator.screens.map.MainMapScreen
 import com.example.campusnavigator.ui.theme.CampusNavigatorTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -69,7 +69,8 @@ class MainActivity : ComponentActivity() {
                                 navController
                             )
                         }
-                        composable("decisionTree") {
+                        composable("decisionTree") {}
+                        composable("neural") {
                             DrawingBottomSheet(
                                 onDismiss = { navController.popBackStack() },
                                 onSubmitted = { rating ->
