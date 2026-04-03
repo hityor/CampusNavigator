@@ -1,6 +1,5 @@
 package com.example.campusnavigator.screens.map
 
-import android.R
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -19,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.campusnavigator.screens.map.models.MapMode
 import com.example.campusnavigator.ui.theme.NavyPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)

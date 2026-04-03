@@ -19,7 +19,6 @@ import androidx.compose.ui.unit.dp
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.ui.theme.GreenAccent
 import com.example.campusnavigator.ui.theme.GreenLight
-import com.example.campusnavigator.ui.theme.NavyPrimary
 import com.example.campusnavigator.ui.theme.TextSecondary
 
 @Composable
