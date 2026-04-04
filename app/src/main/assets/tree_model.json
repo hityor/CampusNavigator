@@ -1,0 +1,58 @@
+﻿{
+  "leaf": false,
+  "feature": "food_type",
+  "value": "full_meal",
+  "left": {
+    "leaf": true,
+    "class": "Main_Cafeteria"
+  },
+  "right": {
+    "leaf": false,
+    "feature": "location",
+    "value": "second_building",
+    "left": {
+      "leaf": false,
+      "feature": "budget",
+      "value": "low",
+      "left": {
+        "leaf": true,
+        "class": "Vending_Machine"
+      },
+      "right": {
+        "leaf": true,
+        "class": "Second_Building_Cafe"
+      }
+    },
+    "right": {
+      "leaf": false,
+      "feature": "location",
+      "value": "main_building",
+      "left": {
+        "leaf": false,
+        "feature": "budget",
+        "value": "low",
+        "left": {
+          "leaf": true,
+          "class": "Yarche"
+        },
+        "right": {
+          "leaf": false,
+          "feature": "budget",
+          "value": "high",
+          "left": {
+            "leaf": true,
+            "class": "Starbooks"
+          },
+          "right": {
+            "leaf": true,
+            "class": "Bus_Stop_Coffee"
+          }
+        }
+      },
+      "right": {
+        "leaf": true,
+        "class": "Siberian_Pancakes"
+      }
+    }
+  }
+}

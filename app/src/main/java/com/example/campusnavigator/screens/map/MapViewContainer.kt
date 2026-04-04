@@ -99,7 +99,7 @@ fun MapViewContainer(
                 map.setMaxZoomPreference(20.0)
 
                 map.cameraPosition =
-                    CameraPosition.Builder().target(LatLng(56.475, 84.947)).zoom(16.0).build()
+                    CameraPosition.Builder().target(LatLng(56.469, 84.948)).zoom(17.0).build()
             }
         }
     })

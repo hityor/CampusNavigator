@@ -14,6 +14,8 @@ maplibre = "13.0.1"
 material = "1.13.0"
 tensorflowLite = "2.17.0"
 tensorflowLiteSupport = "0.5.0"
+foundation = "1.10.6"
+uiUnit = "1.10.6"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -36,6 +38,8 @@ material = { group = "com.google.android.material", name = "material", version.r
 material-v1110 = { module = "com.google.android.material:material", version.ref = "materialVersion" }
 tensorflow-lite = { module = "org.tensorflow:tensorflow-lite", version.ref = "tensorflowLite" }
 tensorflow-lite-support = { module = "org.tensorflow:tensorflow-lite-support", version.ref = "tensorflowLiteSupport" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation", version.ref = "foundation" }
+androidx-compose-ui-unit = { group = "androidx.compose.ui", name = "ui-unit", version.ref = "uiUnit" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
