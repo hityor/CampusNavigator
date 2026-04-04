@@ -13,11 +13,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.campusnavigator.Algorithms.FeatureSpinner
-import com.example.campusnavigator.Algorithms.featureOptions
-import com.example.campusnavigator.Algorithms.loadFeatureNames
-import com.example.campusnavigator.Algorithms.loadTree
-import com.example.campusnavigator.Algorithms.predict
+import com.example.campusnavigator.algorithms.FeatureSpinner
+import com.example.campusnavigator.algorithms.featureOptions
+import com.example.campusnavigator.algorithms.loadFeatureNames
+import com.example.campusnavigator.algorithms.loadTree
+import com.example.campusnavigator.algorithms.predict
 import org.json.JSONObject
 
 

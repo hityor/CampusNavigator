@@ -14,8 +14,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
-import com.example.campusnavigator.Algorithms.convertJsonToGraph
-import com.example.campusnavigator.Algorithms.predict
+import com.example.campusnavigator.algorithms.convertJsonToGraph
+import com.example.campusnavigator.algorithms.predict
 import org.json.JSONObject
 
 @Composable

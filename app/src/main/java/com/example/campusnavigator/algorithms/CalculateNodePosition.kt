@@ -1,4 +1,4 @@
-package com.example.campusnavigator.Algorithms
+package com.example.campusnavigator.algorithms
 
 import com.example.campusnavigator.screens.DecisionTree.GraphNode
 import com.example.campusnavigator.screens.DecisionTree.TreeNodePosition

@@ -1,4 +1,4 @@
-package com.example.campusnavigator.Algorithms
+package com.example.campusnavigator.algorithms
 
 import android.content.Context
 import android.graphics.Bitmap
