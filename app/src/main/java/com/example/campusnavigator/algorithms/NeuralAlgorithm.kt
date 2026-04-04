@@ -2,12 +2,12 @@ package com.example.campusnavigator.algorithms
 
 import android.content.Context
 import android.graphics.Bitmap
+import androidx.core.graphics.get
 import org.tensorflow.lite.Interpreter
 import java.io.FileInputStream
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.nio.channels.FileChannel
-import androidx.core.graphics.get
 
 object NeuralAlgorithm {
 
