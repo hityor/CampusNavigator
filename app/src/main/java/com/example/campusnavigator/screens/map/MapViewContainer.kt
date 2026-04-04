@@ -14,6 +14,8 @@ import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.LatLngToEpsg3857
 import com.example.campusnavigator.epsg3857ToGridCell
 import com.example.campusnavigator.findNearestWalkableCell
+import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
+import com.example.campusnavigator.screens.map.models.MapMode
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
@@ -32,6 +34,7 @@ fun MapViewContainer(
     startCell: GridCell?,
     finishCell: GridCell?,
     path: List<GridCell>,
+    clusteredPlaces: List<ClusteredFoodPlace>,
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
@@ -46,7 +49,10 @@ fun MapViewContainer(
 
             when (currentMode) {
                 MapMode.ASTAR -> renderAStar(map, gridMap, startCell, finishCell, path)
-                MapMode.CLUSTERING -> {}
+                MapMode.CLUSTERING -> {
+                    renderClustering(map, context, clusteredPlaces)
+                }
+
                 MapMode.GENETIC -> {}
                 MapMode.ANT -> {}
                 MapMode.COWORKING -> {}
@@ -99,7 +105,7 @@ fun MapViewContainer(
                 map.setMaxZoomPreference(20.0)
 
                 map.cameraPosition =
-                    CameraPosition.Builder().target(LatLng(56.469, 84.948)).zoom(17.0).build()
+                    CameraPosition.Builder().target(LatLng(56.469449, 84.947971)).zoom(16.0).build()
             }
         }
     })
