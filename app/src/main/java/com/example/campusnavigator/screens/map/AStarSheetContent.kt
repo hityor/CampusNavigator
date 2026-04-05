@@ -15,11 +15,11 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.ui.theme.GreenAccent
 import com.example.campusnavigator.ui.theme.GreenLight
-import com.example.campusnavigator.ui.theme.TextSecondary
 
 @Composable
 fun AStarSheetContent(
@@ -32,12 +32,12 @@ fun AStarSheetContent(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp)
+            .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
             text = "Построение маршрута",
             style = MaterialTheme.typography.titleMedium,
-            color = TextSecondary
+            fontWeight = FontWeight.SemiBold
         )
 
         Spacer(Modifier.height(6.dp))

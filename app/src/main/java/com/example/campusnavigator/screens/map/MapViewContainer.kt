@@ -19,6 +19,7 @@ import com.example.campusnavigator.screens.map.models.MapMode
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.geometry.LatLngQuad
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.style.layers.RasterLayer
@@ -101,11 +102,30 @@ fun MapViewContainer(
                     isTiltGesturesEnabled = true
                 }
 
-                map.setMinZoomPreference(1.0)
+                val bitmapBounds = LatLngBounds.Builder()
+                    .include(latLngQuad.topLeft)
+                    .include(latLngQuad.topRight)
+                    .include(latLngQuad.bottomLeft)
+                    .include(latLngQuad.bottomRight)
+                    .build()
+
+                val latPad = (bitmapBounds.latitudeNorth - bitmapBounds.latitudeSouth) * 0.25
+                val lonPad = (bitmapBounds.longitudeEast - bitmapBounds.longitudeWest) * 0.18
+
+                val tightBounds = LatLngBounds.from(
+                    bitmapBounds.latitudeNorth - latPad,
+                    bitmapBounds.longitudeEast - lonPad,
+                    bitmapBounds.latitudeSouth + latPad,
+                    bitmapBounds.longitudeWest + lonPad
+                )
+
+                map.setLatLngBoundsForCameraTarget(tightBounds)
+
+                map.setMinZoomPreference(14.5)
                 map.setMaxZoomPreference(20.0)
 
                 map.cameraPosition =
-                    CameraPosition.Builder().target(LatLng(56.469449, 84.947971)).zoom(16.0).build()
+                    CameraPosition.Builder().target(LatLng(56.469449, 84.947971)).zoom(14.5).build()
             }
         }
     })

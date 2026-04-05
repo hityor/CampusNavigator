@@ -74,90 +74,94 @@ fun MainMapScreen(
         clearClusteringState()
     }
 
-    BottomSheetScaffold(topBar = {
-        CenterAlignedTopAppBar(
-            title = {
-                Text(
-                    text = currentMode.title, color = Color.White
+    BottomSheetScaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = {
+                    Text(
+                        text = currentMode.title, color = Color.White
+                    )
+                }, navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Назад",
+                            tint = Color.White
+                        )
+                    }
+                }, actions = {
+                    IconButton(onClick = { showModeSheet = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Выбрать режим",
+                            tint = Color.White
+                        )
+                    }
+                }, colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                    containerColor = NavyPrimary
                 )
-            }, navigationIcon = {
-                IconButton(onClick = { navController.popBackStack() }) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Назад",
-                        tint = Color.White
-                    )
-                }
-            }, actions = {
-                IconButton(onClick = { showModeSheet = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Menu,
-                        contentDescription = "Выбрать режим",
-                        tint = Color.White
-                    )
-                }
-            }, colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = NavyPrimary
             )
-        )
-    }, scaffoldState = scaffoldState, sheetPeekHeight = 180.dp, sheetDragHandle = {
-        Surface(
-            modifier = Modifier
-                .padding(top = 8.dp)
-                .height(4.dp)
-                .width(40.dp),
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            shape = MaterialTheme.shapes.extraLarge
-        ) {}
-    }, sheetContent = {
-        when (currentMode) {
-            MapMode.ASTAR -> {
-                AStarSheetContent(
-                    startCell = startCell,
-                    finishCell = finishCell,
-                    routeMessage = routeMessage,
-                    onBuildRoute = {
-                        val start = startCell
-                        val finish = finishCell
+        },
+        scaffoldState = scaffoldState,
+        sheetPeekHeight = 64.dp,
+        sheetDragHandle = {
+            Surface(
+                modifier = Modifier
+                    .padding(top = 8.dp)
+                    .height(4.dp)
+                    .width(40.dp),
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                shape = MaterialTheme.shapes.extraLarge
+            ) {}
+        }, sheetContent = {
+            when (currentMode) {
+                MapMode.ASTAR -> {
+                    AStarSheetContent(
+                        startCell = startCell,
+                        finishCell = finishCell,
+                        routeMessage = routeMessage,
+                        onBuildRoute = {
+                            val start = startCell
+                            val finish = finishCell
 
-                        if (start != null && finish != null) {
-                            val result = findPath(start, finish, gridMap)
-                            path = result ?: emptyList()
-                            routeMessage =
-                                if (path.isNotEmpty()) "Маршрут построен: ${path.size} клеток" else "Маршрут не найден"
-                        }
-                    },
-                    onClear = {
-                        clearAStarStates()
-                    })
-            }
+                            if (start != null && finish != null) {
+                                val result = findPath(start, finish, gridMap)
+                                path = result ?: emptyList()
+                                routeMessage =
+                                    if (path.isNotEmpty()) "Маршрут построен: ${path.size} клеток" else "Маршрут не найден"
+                            }
+                        },
+                        onClear = {
+                            clearAStarStates()
+                        })
+                }
 
-            MapMode.CLUSTERING -> {
-                ClusteringSheetContent(
-                    clusterCount = clusterCount,
-                    clusteredPlaces = clusteredPlaces,
-                    onClusterCountChange = { clusterCount = it },
-                    onRun = {
-                        clusteredPlaces = runKMeans(sampleFoodPlaces, clusterCount)
-                    },
-                    onClear = {
-                        clearClusteringState()
-                    })
-            }
+                MapMode.CLUSTERING -> {
+                    ClusteringSheetContent(
+                        clusterCount = clusterCount,
+                        clusteredPlaces = clusteredPlaces,
+                        onClusterCountChange = { clusterCount = it },
+                        onRun = {
+                            clusteredPlaces = runKMeans(sampleFoodPlaces, clusterCount)
+                        },
+                        onClear = {
+                            clearClusteringState()
+                        })
+                }
 
-            MapMode.GENETIC -> {
-                GeneticSheetContent()
-            }
+                MapMode.GENETIC -> {
+                    GeneticSheetContent()
+                }
 
-            MapMode.ANT -> {
-                AntSheetContent()
-            }
+                MapMode.ANT -> {
+                    AntSheetContent()
+                }
 
-            MapMode.COWORKING -> {
-                CoworkingSheetContent()
+                MapMode.COWORKING -> {
+                    CoworkingSheetContent()
+                }
             }
-        }
-    }) {
+        }) {
 
         MapViewContainer(
             gridMap = gridMap,
