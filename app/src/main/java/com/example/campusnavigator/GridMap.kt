@@ -32,16 +32,12 @@ class GridMap(
     val cellSize: Double
 )
 
-fun GridMap.createGridBitMap(): Bitmap {
-    val scale = 10
-    val bmpW = width * scale
-    val bmpH = height * scale
-
-
-    val bitmap = createBitmap(bmpW, bmpH)
-
-    val canvas = Canvas(bitmap)
-    val paint = Paint().apply {
+private fun Canvas.drawGrid(
+    scale: Int,
+    width: Int,
+    height: Int
+) {
+    val line = Paint().apply {
         color = Color.argb(130, 0, 0, 0)
         style = Paint.Style.STROKE
         strokeWidth = 1f
@@ -49,12 +45,90 @@ fun GridMap.createGridBitMap(): Bitmap {
 
     for (i in 0..width) {
         val x = i * scale.toFloat()
-        canvas.drawLine(x, 0f, x, bmpH.toFloat(), paint)
+        drawLine(
+            x,
+            0f,
+            x,
+            height * scale.toFloat(),
+            line
+        )
     }
+
     for (i in 0..height) {
         val y = i * scale.toFloat()
-        canvas.drawLine(0f, y, bmpW.toFloat(), y, paint)
+        drawLine(
+            0f,
+            y,
+            width * scale.toFloat(),
+            y,
+            line
+        )
     }
+}
+
+private fun Canvas.drawCell(
+    cell: GridCell,
+    scale: Int,
+    paint: Paint
+) {
+    drawRect(
+        cell.col * scale.toFloat(),
+        cell.row * scale.toFloat(),
+        (cell.col + 1) * scale.toFloat(),
+        (cell.row + 1) * scale.toFloat(),
+        paint
+    )
+}
+
+private fun Canvas.drawCells(
+    cells: Iterable<GridCell>,
+    scale: Int,
+    paint: Paint
+) {
+    for (cell in cells) {
+        drawCell(
+            cell,
+            scale,
+            paint
+        )
+    }
+}
+
+fun GridMap.createGridBitMap(): Bitmap {
+    val scale = 4
+    val bitmap = createBitmap(width * scale, height * scale)
+    val canvas = Canvas(bitmap)
+
+    canvas.drawGrid(scale, width, height)
+
+    return bitmap
+}
+
+fun GridMap.createAnimatedBitmap(
+    visited: Set<GridCell> = emptySet(),
+    current: GridCell? = null,
+    obstacles: Set<GridCell> = emptySet(),
+    path: List<GridCell> = emptyList()
+): Bitmap {
+    val scale = 4
+    val bitmap = createBitmap(width * scale, height * scale)
+    val canvas = Canvas(bitmap)
+
+    canvas.drawGrid(scale, width, height)
+
+    val visitedPaint = Paint().apply { color = Color.GRAY }
+    canvas.drawCells(visited, scale, visitedPaint)
+
+    if (current != null) {
+        val currentPaint = Paint().apply { color = Color.YELLOW }
+        canvas.drawCell(current, scale, currentPaint)
+    }
+
+    val obstaclePaint = Paint().apply { color = Color.RED }
+    canvas.drawCells(obstacles, scale, obstaclePaint)
+
+    val pathPaint = Paint().apply { color = Color.GREEN }
+    canvas.drawCells(path, scale, pathPaint)
 
     return bitmap
 }

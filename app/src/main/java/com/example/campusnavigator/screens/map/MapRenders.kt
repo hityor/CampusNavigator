@@ -43,7 +43,10 @@ fun renderAStar(
         }
 
         map.addPolyline(
-            PolylineOptions().addAll(pathPoints).width(3f).color(Color.BLUE)
+            PolylineOptions()
+                .addAll(pathPoints)
+                .color(Color.BLUE)
+                .width(3f)
         )
     }
 }

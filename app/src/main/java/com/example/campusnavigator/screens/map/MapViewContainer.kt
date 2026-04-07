@@ -3,9 +3,12 @@ package com.example.campusnavigator.screens.map
 import android.graphics.Bitmap
 import android.os.Bundle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
@@ -21,6 +24,7 @@ import org.maplibre.android.camera.CameraPosition
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngBounds
 import org.maplibre.android.geometry.LatLngQuad
+import org.maplibre.android.maps.MapLibreMap
 import org.maplibre.android.maps.MapView
 import org.maplibre.android.style.layers.RasterLayer
 import org.maplibre.android.style.sources.ImageSource
@@ -35,6 +39,9 @@ fun MapViewContainer(
     startCell: GridCell?,
     finishCell: GridCell?,
     path: List<GridCell>,
+    isDrawingObstacles: Boolean,
+    isAnimating: Boolean,
+    onObstacleTapped: (GridCell) -> Unit,
     clusteredPlaces: List<ClusteredFoodPlace>,
     modifier: Modifier = Modifier
 ) {
@@ -43,27 +50,39 @@ fun MapViewContainer(
 
     val currentModeState by rememberUpdatedState(currentMode)
     val onCellSelectedState by rememberUpdatedState(onCellSelected)
+    val isDrawingObstaclesState by rememberUpdatedState(isDrawingObstacles)
+    val onObstacleTappedState by rememberUpdatedState(onObstacleTapped)
+    val isAnimatingState by rememberUpdatedState(isAnimating)
 
-    AndroidView(modifier = modifier, update = { mapView ->
-        mapView.getMapAsync { map ->
-            map.clear()
+    var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
 
-            when (currentMode) {
-                MapMode.ASTAR -> renderAStar(map, gridMap, startCell, finishCell, path)
-                MapMode.CLUSTERING -> {
-                    renderClustering(map, context, clusteredPlaces)
-                }
+    LaunchedEffect(gridBitmap) {
+        val map = mapRef ?: return@LaunchedEffect
+        val style = map.style ?: return@LaunchedEffect
+        val source = style.getSourceAs<ImageSource>("grid-mask-source")
+        source?.setImage(gridBitmap)
+    }
 
-                MapMode.GENETIC -> {}
-                MapMode.ANT -> {}
-                MapMode.COWORKING -> {}
-            }
+    LaunchedEffect(mapRef, currentMode, startCell, finishCell, path, clusteredPlaces) {
+        val map = mapRef ?: return@LaunchedEffect
+        map.clear()
+        when (currentMode) {
+            MapMode.ASTAR -> renderAStar(map, gridMap, startCell, finishCell, path)
+            MapMode.CLUSTERING -> renderClustering(map, context, clusteredPlaces)
+            MapMode.GENETIC -> {}
+            MapMode.ANT -> {}
+            MapMode.COWORKING -> {}
         }
+    }
 
-    }, factory = { ctx ->
+
+    AndroidView(
+        modifier = modifier,
+        factory = { ctx ->
         MapView(ctx).apply {
             onCreate(Bundle())
             getMapAsync { map ->
+
                 map.setStyle("https://tiles.openfreemap.org/styles/liberty") { style ->
 
                     val imageSource = ImageSource(
@@ -75,21 +94,27 @@ fun MapViewContainer(
                         "grid-mask-layer", "grid-mask-source"
                     )
                     style.addLayer(rasterLayer)
+
+                    mapRef = map
                 }
 
                 map.addOnMapClickListener { point ->
+                    if (isAnimating) return@addOnMapClickListener true
+
                     val (x, y) = LatLngToEpsg3857(point.latitude, point.longitude)
                     val tappedCell = epsg3857ToGridCell(x, y, gridMap)
-
-
                     val selectedCell = findNearestWalkableCell(tappedCell, gridMap, maxRadius = 3)
+
 
                     if (currentModeState == MapMode.ASTAR) {
                         if (selectedCell != null) {
-                            onCellSelectedState(selectedCell)
+                            if (isDrawingObstaclesState) {
+                                onObstacleTappedState(selectedCell)
+                            } else {
+                                onCellSelectedState(selectedCell)
+                            }
                         }
                     }
-
                     true
                 }
 

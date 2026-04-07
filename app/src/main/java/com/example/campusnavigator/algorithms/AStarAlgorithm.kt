@@ -2,7 +2,13 @@ package com.example.campusnavigator.algorithms
 
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
+import java.util.PriorityQueue
+import kotlin.collections.emptyList
 import kotlin.math.abs
+
+data class AStarStep(
+    val current: GridCell
+)
 
 fun heuristic(a: GridCell, b: GridCell): Int {
     return abs(a.row - b.row) + abs(a.col - b.col)
@@ -29,31 +35,44 @@ fun getWalkableNeighbors(cell: GridCell, grid: Array<IntArray>): List<GridCell> 
     return neighbors
 }
 
-fun findPath(startCell: GridCell, finishCell: GridCell, gridMap: GridMap): List<GridCell>? {
-    if (gridMap.grid[startCell.row][startCell.col] != 1) return null
-    if (gridMap.grid[finishCell.row][finishCell.col] != 1) return null
+fun findPathWithSteps(
+    startCell: GridCell,
+    finishCell: GridCell,
+    gridMap: GridMap,
+    extraObstacles: Set<GridCell> = emptySet()
+): Pair<List<GridCell>?, List<AStarStep>> {
 
-    val openList = mutableListOf<GridCell>()
+    if (gridMap.grid[startCell.row][startCell.col] != 1) return Pair(null, emptyList())
+    if (gridMap.grid[finishCell.row][finishCell.col] != 1) return Pair(null, emptyList())
+    if (startCell in extraObstacles || finishCell in extraObstacles) return Pair(null, emptyList())
+
+
+    val gScore = mutableMapOf<GridCell, Int>()
+    val openQueue = PriorityQueue<GridCell>(compareBy { cell ->
+        (gScore[cell] ?: Int.MAX_VALUE) + heuristic(cell, finishCell)
+    })
     val closedSet = mutableSetOf<GridCell>()
     val cameFrom = mutableMapOf<GridCell, GridCell>()
-    val gScore = mutableMapOf<GridCell, Int>()
+    val steps = mutableListOf<AStarStep>()
 
-    openList.add(startCell)
+    openQueue.add(startCell)
     gScore[startCell] = 0
 
-    while (openList.isNotEmpty()) {
-        val current = openList.minBy { cell ->
-            (gScore[cell] ?: Int.MAX_VALUE) + heuristic(cell, finishCell)
-        }
+    while (openQueue.isNotEmpty()) {
+        val current = openQueue.poll()!!
+
+        if (current in closedSet) continue
+
+        closedSet.add(current)
+        steps.add(AStarStep(current))
 
         if (current == finishCell) {
-            return reconstructPath(finishCell, cameFrom)
+            return Pair(reconstructPath(finishCell, cameFrom), steps)
         }
 
-        openList.remove(current)
-        closedSet.add(current)
-
         val neighbors = getWalkableNeighbors(current, gridMap.grid)
+            .filter { it !in extraObstacles }
+
         for (neighbor in neighbors) {
             if (neighbor in closedSet) continue
 
@@ -61,13 +80,13 @@ fun findPath(startCell: GridCell, finishCell: GridCell, gridMap: GridMap): List<
             if (tentativeG < (gScore[neighbor] ?: Int.MAX_VALUE)) {
                 cameFrom[neighbor] = current
                 gScore[neighbor] = tentativeG
-
-                if (neighbor !in openList) openList.add(neighbor)
+                openQueue.remove(neighbor)
+                openQueue.add(neighbor)
             }
         }
     }
 
-    return null
+    return Pair(null, steps)
 }
 
 fun reconstructPath(finishCell: GridCell, cameFrom: Map<GridCell, GridCell>): List<GridCell> {
