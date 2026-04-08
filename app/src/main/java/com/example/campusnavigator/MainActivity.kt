@@ -6,20 +6,21 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.example.campusnavigator.Algorithms.AntScreen
-import com.example.campusnavigator.Algorithms.ClusteringScreen
-import com.example.campusnavigator.Algorithms.DecisionTreeScreen
-import com.example.campusnavigator.Algorithms.GeneticScreen
-import com.example.campusnavigator.Algorithms.NeuralScreen
+import com.example.campusnavigator.algorithms.NeuralAlgorithm
+import com.example.campusnavigator.screens.DrawingBottomSheet
+import com.example.campusnavigator.screens.HomeScreen
+import com.example.campusnavigator.screens.SplashScreen
+import com.example.campusnavigator.screens.DecisionTree.TreeScreen
+import com.example.campusnavigator.screens.map.MainMapScreen
 import com.example.campusnavigator.ui.theme.CampusNavigatorTheme
-import org.maplibre.android.MapLibre
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import androidx.lifecycle.lifecycleScope
+import org.maplibre.android.MapLibre
 import org.maplibre.android.geometry.LatLngQuad
 
 class MainActivity : ComponentActivity() {
@@ -31,6 +32,10 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         MapLibre.getInstance(this)
         enableEdgeToEdge()
+
+        lifecycleScope.launch(Dispatchers.IO) {
+            NeuralAlgorithm.initialize(applicationContext)
+        }
 
         lifecycleScope.launch(Dispatchers.IO) {
             val myGrid = makeGridFromCsv("grid_passability.csv", this@MainActivity)
@@ -53,22 +58,40 @@ class MainActivity : ComponentActivity() {
 
                 if (grid == null || bitmap == null || quad == null) {
                     SplashScreen()
-                }
-                else {
+                } else {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "home") {
                         composable("home") { HomeScreen(navController) }
-                        composable("map") {MapScreen(gridMap = grid, gridBitMap = bitmap, latLngQuad = quad)}
-                        composable("astar") { AStarScreen(navController) }
-                        composable("clustering") { ClusteringScreen(navController) }
-                        composable("genetic") { GeneticScreen(navController) }
-                        composable("ant") { AntScreen(navController) }
-                        composable("decisionTree") { DecisionTreeScreen(navController) }
-                        composable("neural") { NeuralScreen(navController) }
+                        composable("mainMap") {
+                            MainMapScreen(
+                                gridMap = grid,
+                                gridBitmap = bitmap,
+                                latLngQuad = quad,
+                                navController
+                            )
+                        }
+                        composable("decisionTree") {
+                            TreeScreen(this@MainActivity)
+                        }
+                        composable("neural") {
+                            DrawingBottomSheet(
+                                onDismiss = { navController.popBackStack() },
+                                onSubmitted = { rating ->
+                                    navController.popBackStack()
+                                }
+                            )
+                        }
                     }
                 }
 
             }
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        lifecycleScope.launch(Dispatchers.IO) {
+            NeuralAlgorithm.close()
         }
     }
 }

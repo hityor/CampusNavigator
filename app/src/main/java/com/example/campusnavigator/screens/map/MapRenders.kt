@@ -1,0 +1,111 @@
+package com.example.campusnavigator.screens.map
+
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
+import androidx.core.graphics.createBitmap
+import com.example.campusnavigator.GridCell
+import com.example.campusnavigator.GridMap
+import com.example.campusnavigator.gridCellToLatLng
+import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
+import org.maplibre.android.annotations.IconFactory
+import org.maplibre.android.annotations.MarkerOptions
+import org.maplibre.android.annotations.PolylineOptions
+import org.maplibre.android.geometry.LatLng
+import org.maplibre.android.maps.MapLibreMap
+
+fun renderAStar(
+    map: MapLibreMap,
+    gridMap: GridMap,
+    startCell: GridCell?,
+    finishCell: GridCell?,
+    path: List<GridCell>
+) {
+    if (startCell != null) {
+        val pos = gridCellToLatLng(startCell.row, startCell.col, gridMap)
+        map.addMarker(
+            MarkerOptions().position(pos).title("Start")
+        )
+    }
+
+    if (finishCell != null) {
+        val pos = gridCellToLatLng(finishCell.row, finishCell.col, gridMap)
+        map.addMarker(
+            MarkerOptions().position(pos).title("Finish")
+        )
+    }
+
+    if (path.isNotEmpty()) {
+        val pathPoints = path.map { cell ->
+            gridCellToLatLng(cell.row, cell.col, gridMap)
+        }
+
+        map.addPolyline(
+            PolylineOptions().addAll(pathPoints).width(3f).color(Color.BLUE)
+        )
+    }
+}
+
+fun getColorForCluster(index: Int): Int {
+    val colors = listOf(
+        Color.RED,
+        Color.BLUE,
+        Color.GREEN,
+        Color.YELLOW,
+        Color.MAGENTA,
+        Color.CYAN
+    )
+
+    return colors[index % colors.size]
+}
+
+fun createMarkerBitmap(color: Int): Bitmap {
+    val size = 80
+    val bitmap = createBitmap(size, size)
+    val canvas = Canvas(bitmap)
+
+    val shadowPaint = Paint().apply {
+        this.color = color
+        isAntiAlias = true
+    }
+    canvas.drawCircle(size / 2f, size / 2f + 3f, size / 2.6f, shadowPaint)
+
+    val fillPaint = Paint().apply {
+        this.color = color
+        isAntiAlias = true
+    }
+    canvas.drawCircle(size / 2f, size / 2f, size / 2.8f, fillPaint)
+
+    val borderPaint = Paint().apply {
+        this.color = Color.WHITE
+        isAntiAlias = true
+        style = Paint.Style.STROKE
+        strokeWidth = 5f
+    }
+    canvas.drawCircle(size / 2f, size / 2f, size / 2.8f, borderPaint)
+
+    return bitmap
+}
+
+fun renderClustering(
+    map: MapLibreMap,
+    context: Context,
+    clusteredPlaces: List<ClusteredFoodPlace>
+) {
+    val iconFactory = IconFactory.getInstance(context)
+
+    clusteredPlaces.forEach { item ->
+        val color = getColorForCluster(item.clusterIndex)
+        val bitmap = createMarkerBitmap(color)
+        val icon = iconFactory.fromBitmap(bitmap)
+
+        map.addMarker(
+            MarkerOptions()
+                .position(LatLng(item.place.lat, item.place.lon))
+                .title("${item.place.name}. кластер ${item.clusterIndex + 1}")
+                .icon(icon)
+        )
+    }
+}
