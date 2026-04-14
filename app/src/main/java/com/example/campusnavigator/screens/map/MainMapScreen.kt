@@ -2,7 +2,6 @@ package com.example.campusnavigator.screens.map
 
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.core.animate
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -32,10 +31,12 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
-import com.example.campusnavigator.algorithms.AStarStep
 import com.example.campusnavigator.algorithms.findPathWithSteps
 import com.example.campusnavigator.algorithms.runKMeans
-import com.example.campusnavigator.createAnimatedBitmap
+import com.example.campusnavigator.createAStarOverlayBitmap
+import com.example.campusnavigator.createEmptyOverlayBitmap
+import com.example.campusnavigator.isInsideGrid
+import com.example.campusnavigator.isWalkable
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
 import com.example.campusnavigator.screens.map.models.MapMode
 import com.example.campusnavigator.ui.theme.NavyPrimary
@@ -48,7 +49,10 @@ import org.maplibre.android.geometry.LatLngQuad
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainMapScreen(
-    gridMap: GridMap, gridBitmap: Bitmap, latLngQuad: LatLngQuad, navController: NavController
+    gridMap: GridMap,
+    baseBitmap: Bitmap,
+    latLngQuad: LatLngQuad,
+    navController: NavController
 ) {
     BackHandler(enabled = true) { }
 
@@ -64,12 +68,42 @@ fun MainMapScreen(
     var isDrawingObstacles by remember { mutableStateOf(false) }
     var extraObstacles by remember { mutableStateOf<Set<GridCell>>(emptySet()) }
     var isAnimating by remember { mutableStateOf(false) }
-    var animatedBitmap by remember { mutableStateOf(gridBitmap) }
+
+    var overlayBitmap by remember { mutableStateOf(gridMap.createEmptyOverlayBitmap()) }
 
     val scope = rememberCoroutineScope()
 
     var clusterCount by remember { mutableIntStateOf(3) }
     var clusteredPlaces by remember { mutableStateOf<List<ClusteredFoodPlace>>(emptyList()) }
+
+    fun refreshAStarOverlay(
+        visited: Set<GridCell> = emptySet(),
+        current: GridCell? = null,
+        currentPath: List<GridCell> = path
+    ) {
+        overlayBitmap = gridMap.createAStarOverlayBitmap(
+            visited = visited,
+            current = current,
+            obstacles = extraObstacles,
+            path = currentPath
+        )
+    }
+
+    fun buildObstacleBrush(center: GridCell, radius: Int = 2): Set<GridCell> {
+        val result = mutableSetOf<GridCell>()
+
+        for (row in center.row - radius..center.row + radius) {
+            for (col in center.col - radius..center.col + radius) {
+                val cell = GridCell(row, col)
+
+                if (!isInsideGrid(cell, gridMap)) continue
+
+                result.add(cell)
+            }
+        }
+
+        return result
+    }
 
     fun clearAStarStates() {
         startCell = null
@@ -78,7 +112,7 @@ fun MainMapScreen(
         routeMessage = null
         extraObstacles = emptySet()
         isAnimating = false
-        animatedBitmap = gridBitmap
+        overlayBitmap = gridMap.createEmptyOverlayBitmap()
     }
 
     fun clearClusteringState() {
@@ -143,7 +177,7 @@ fun MainMapScreen(
                         extraObstacles = emptySet()
                         path = emptyList()
                         routeMessage = null
-                        animatedBitmap = gridBitmap
+                        overlayBitmap = gridMap.createEmptyOverlayBitmap()
                     },
                     onBuildRoute = {
                         val start = startCell
@@ -166,7 +200,7 @@ fun MainMapScreen(
 
                                     if (i % skipEvery == 0 || i == steps.lastIndex) {
                                         val bmp = withContext(Dispatchers.Default) {
-                                            gridMap.createAnimatedBitmap(
+                                            gridMap.createAStarOverlayBitmap(
                                                 visited = animatedVisited,
                                                 current = step.current,
                                                 obstacles = extraObstacles,
@@ -174,13 +208,13 @@ fun MainMapScreen(
                                             )
                                         }
 
-                                        animatedBitmap = bmp
+                                        overlayBitmap = bmp
                                         delay(50)
                                     }
                                 }
 
-                                animatedBitmap = withContext(Dispatchers.Default) {
-                                    gridMap.createAnimatedBitmap(
+                                overlayBitmap = withContext(Dispatchers.Default) {
+                                    gridMap.createAStarOverlayBitmap(
                                         visited = emptySet(),
                                         current = null,
                                         obstacles = extraObstacles,
@@ -232,7 +266,8 @@ fun MainMapScreen(
 
         MapViewContainer(
             gridMap = gridMap,
-            gridBitmap = animatedBitmap,
+            baseBitmap = baseBitmap,
+            overlayBitmap = overlayBitmap,
             latLngQuad = latLngQuad,
             currentMode = currentMode,
             startCell = startCell,
@@ -241,19 +276,24 @@ fun MainMapScreen(
             isDrawingObstacles = isDrawingObstacles,
             isAnimating = isAnimating,
             onObstacleTapped = { cell ->
-                extraObstacles = if (cell in extraObstacles) {
-                    extraObstacles - cell
+                val brushCells = buildObstacleBrush(cell, radius = 2)
+
+                val shouldRemove = brushCells.all { it in extraObstacles }
+
+                val newObstacles = if (shouldRemove) {
+                    extraObstacles - brushCells
                 } else {
-                    extraObstacles + cell
+                    extraObstacles + brushCells
                 }
 
+                extraObstacles = newObstacles
                 path = emptyList()
                 routeMessage = null
 
-                animatedBitmap = gridMap.createAnimatedBitmap(
+                overlayBitmap = gridMap.createAStarOverlayBitmap(
                     visited = emptySet(),
                     current = null,
-                    obstacles = extraObstacles,
+                    obstacles = newObstacles,
                     path = emptyList()
                 )
             },
@@ -280,6 +320,8 @@ fun MainMapScreen(
                             routeMessage = null
                         }
                     }
+
+                    refreshAStarOverlay(currentPath = emptyList())
                 }
             })
     }
@@ -287,7 +329,10 @@ fun MainMapScreen(
     if (showModeSheet) {
         MapModeSelectionSheet(
             onDismiss = { showModeSheet = false },
-            onModeSelected = { currentMode = it },
+            onModeSelected = {
+                currentMode = it
+                overlayBitmap = gridMap.createEmptyOverlayBitmap()
+            },
             onResetModeState = {
                 resetAllModeStates()
             })

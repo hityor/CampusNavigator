@@ -25,7 +25,7 @@ import org.maplibre.android.geometry.LatLngQuad
 
 class MainActivity : ComponentActivity() {
     private val gridMapState = mutableStateOf<GridMap?>(null)
-    private val gridBitmapState = mutableStateOf<Bitmap?>(null)
+    private val baseBitmapState = mutableStateOf<Bitmap?>(null)
     private val gridQuadState = mutableStateOf<LatLngQuad?>(null)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -39,12 +39,12 @@ class MainActivity : ComponentActivity() {
 
         lifecycleScope.launch(Dispatchers.IO) {
             val myGrid = makeGridFromCsv("grid_passability.csv", this@MainActivity)
-            val bitmap = myGrid.createGridBitMap()
+            val bitmap = myGrid.createBaseBitmap()
             val quad = myGrid.getLatLngQuad()
 
             withContext(Dispatchers.Main) {
                 gridMapState.value = myGrid
-                gridBitmapState.value = bitmap
+                baseBitmapState.value = bitmap
                 gridQuadState.value = quad
             }
         }
@@ -53,10 +53,10 @@ class MainActivity : ComponentActivity() {
         setContent {
             CampusNavigatorTheme {
                 val grid = gridMapState.value
-                val bitmap = gridBitmapState.value
+                val baseBitmap = baseBitmapState.value
                 val quad = gridQuadState.value
 
-                if (grid == null || bitmap == null || quad == null) {
+                if (grid == null || baseBitmap == null || quad == null) {
                     SplashScreen()
                 } else {
                     val navController = rememberNavController()
@@ -65,9 +65,9 @@ class MainActivity : ComponentActivity() {
                         composable("mainMap") {
                             MainMapScreen(
                                 gridMap = grid,
-                                gridBitmap = bitmap,
+                                baseBitmap = baseBitmap,
                                 latLngQuad = quad,
-                                navController
+                                navController = navController
                             )
                         }
                         composable("decisionTree") {

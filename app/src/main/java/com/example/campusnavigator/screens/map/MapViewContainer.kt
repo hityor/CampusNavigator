@@ -17,6 +17,7 @@ import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.LatLngToEpsg3857
 import com.example.campusnavigator.epsg3857ToGridCell
 import com.example.campusnavigator.findNearestWalkableCell
+import com.example.campusnavigator.isInsideGrid
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
 import com.example.campusnavigator.screens.map.models.MapMode
 import org.maplibre.android.MapLibre
@@ -32,7 +33,8 @@ import org.maplibre.android.style.sources.ImageSource
 @Composable
 fun MapViewContainer(
     gridMap: GridMap,
-    gridBitmap: Bitmap,
+    baseBitmap: Bitmap,
+    overlayBitmap: Bitmap,
     latLngQuad: LatLngQuad,
     currentMode: MapMode,
     onCellSelected: (GridCell) -> Unit,
@@ -56,16 +58,24 @@ fun MapViewContainer(
 
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
 
-    LaunchedEffect(gridBitmap) {
+    LaunchedEffect(baseBitmap) {
         val map = mapRef ?: return@LaunchedEffect
         val style = map.style ?: return@LaunchedEffect
-        val source = style.getSourceAs<ImageSource>("grid-mask-source")
-        source?.setImage(gridBitmap)
+        val source = style.getSourceAs<ImageSource>("grid-base-source")
+        source?.setImage(baseBitmap)
+    }
+
+    LaunchedEffect(overlayBitmap) {
+        val map = mapRef ?: return@LaunchedEffect
+        val style = map.style ?: return@LaunchedEffect
+        val source = style.getSourceAs<ImageSource>("grid-overlay-source")
+        source?.setImage(overlayBitmap)
     }
 
     LaunchedEffect(mapRef, currentMode, startCell, finishCell, path, clusteredPlaces) {
         val map = mapRef ?: return@LaunchedEffect
         map.clear()
+
         when (currentMode) {
             MapMode.ASTAR -> renderAStar(map, gridMap, startCell, finishCell, path)
             MapMode.CLUSTERING -> renderClustering(map, context, clusteredPlaces)
@@ -85,36 +95,59 @@ fun MapViewContainer(
 
                 map.setStyle("https://tiles.openfreemap.org/styles/liberty") { style ->
 
-                    val imageSource = ImageSource(
-                        "grid-mask-source", latLngQuad, gridBitmap
+                    val baseSource = ImageSource(
+                        "grid-base-source",
+                        latLngQuad,
+                        baseBitmap
                     )
-                    style.addSource(imageSource)
+                    style.addSource(baseSource)
 
-                    val rasterLayer = RasterLayer(
-                        "grid-mask-layer", "grid-mask-source"
+                    val overlaySource = ImageSource(
+                        "grid-overlay-source",
+                        latLngQuad,
+                        overlayBitmap
                     )
-                    style.addLayer(rasterLayer)
+                    style.addSource(overlaySource)
+
+                    val baseLayer = RasterLayer(
+                        "grid-base-layer",
+                        "grid-base-source"
+                    )
+                    style.addLayer(baseLayer)
+
+                    val overlayLayer = RasterLayer(
+                        "grid-overlay-layer",
+                        "grid-overlay-source"
+                    )
+                    style.addLayer(overlayLayer)
 
                     mapRef = map
                 }
 
                 map.addOnMapClickListener { point ->
-                    if (isAnimating) return@addOnMapClickListener true
+                    if (isAnimatingState) return@addOnMapClickListener true
 
                     val (x, y) = LatLngToEpsg3857(point.latitude, point.longitude)
                     val tappedCell = epsg3857ToGridCell(x, y, gridMap)
-                    val selectedCell = findNearestWalkableCell(tappedCell, gridMap, maxRadius = 3)
-
 
                     if (currentModeState == MapMode.ASTAR) {
-                        if (selectedCell != null) {
-                            if (isDrawingObstaclesState) {
-                                onObstacleTappedState(selectedCell)
-                            } else {
+                        if (isDrawingObstaclesState) {
+                            if (isInsideGrid(tappedCell, gridMap)) {
+                                onObstacleTappedState(tappedCell)
+                            }
+                        } else {
+                            val selectedCell = findNearestWalkableCell(
+                                tappedCell,
+                                gridMap,
+                                maxRadius = 3
+                            )
+
+                            if (selectedCell != null) {
                                 onCellSelectedState(selectedCell)
                             }
                         }
                     }
+
                     true
                 }
 

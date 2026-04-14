@@ -35,7 +35,8 @@ class GridMap(
 private fun Canvas.drawGrid(
     scale: Int,
     width: Int,
-    height: Int
+    height: Int,
+    grid: Array<IntArray>
 ) {
     val line = Paint().apply {
         color = Color.argb(130, 0, 0, 0)
@@ -94,17 +95,23 @@ private fun Canvas.drawCells(
     }
 }
 
-fun GridMap.createGridBitMap(): Bitmap {
+fun GridMap.createBaseBitmap(): Bitmap {
     val scale = 4
     val bitmap = createBitmap(width * scale, height * scale)
     val canvas = Canvas(bitmap)
 
-    canvas.drawGrid(scale, width, height)
+    canvas.drawGrid(scale, width, height, grid)
 
     return bitmap
 }
 
-fun GridMap.createAnimatedBitmap(
+fun GridMap.createEmptyOverlayBitmap(): Bitmap {
+    val scale = 4
+    return createBitmap(width * scale, height * scale)
+}
+
+
+fun GridMap.createAStarOverlayBitmap(
     visited: Set<GridCell> = emptySet(),
     current: GridCell? = null,
     obstacles: Set<GridCell> = emptySet(),
@@ -113,8 +120,6 @@ fun GridMap.createAnimatedBitmap(
     val scale = 4
     val bitmap = createBitmap(width * scale, height * scale)
     val canvas = Canvas(bitmap)
-
-    canvas.drawGrid(scale, width, height)
 
     val visitedPaint = Paint().apply { color = Color.GRAY }
     canvas.drawCells(visited, scale, visitedPaint)
