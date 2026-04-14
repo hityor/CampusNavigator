@@ -80,7 +80,6 @@ fun findPathWithSteps(
             if (tentativeG < (gScore[neighbor] ?: Int.MAX_VALUE)) {
                 cameFrom[neighbor] = current
                 gScore[neighbor] = tentativeG
-                openQueue.remove(neighbor)
                 openQueue.add(neighbor)
             }
         }

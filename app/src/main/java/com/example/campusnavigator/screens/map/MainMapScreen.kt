@@ -192,7 +192,7 @@ fun MainMapScreen(
                                     findPathWithSteps(start, finish, gridMap, extraObstacles)
                                 }
                                 val animatedVisited = mutableSetOf<GridCell>()
-                                val skipEvery = 15
+                                val skipEvery = maxOf(1, steps.size / 100)
 
                                 for (i in steps.indices) {
                                     val step = steps[i]
