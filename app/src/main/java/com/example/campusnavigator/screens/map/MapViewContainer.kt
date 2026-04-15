@@ -131,17 +131,16 @@ fun MapViewContainer(
                     val tappedCell = epsg3857ToGridCell(x, y, gridMap)
 
                     if (currentModeState == MapMode.ASTAR) {
+                        val selectedCell = findNearestWalkableCell(
+                            tappedCell,
+                            gridMap,
+                            maxRadius = 3
+                        )
                         if (isDrawingObstaclesState) {
-                            if (isInsideGrid(tappedCell, gridMap)) {
+                            if (selectedCell != null) {
                                 onObstacleTappedState(tappedCell)
                             }
                         } else {
-                            val selectedCell = findNearestWalkableCell(
-                                tappedCell,
-                                gridMap,
-                                maxRadius = 3
-                            )
-
                             if (selectedCell != null) {
                                 onCellSelectedState(selectedCell)
                             }

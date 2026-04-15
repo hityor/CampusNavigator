@@ -276,7 +276,7 @@ fun MainMapScreen(
             isDrawingObstacles = isDrawingObstacles,
             isAnimating = isAnimating,
             onObstacleTapped = { cell ->
-                val brushCells = buildObstacleBrush(cell, radius = 2)
+                val brushCells = buildObstacleBrush(cell, radius = 3)
 
                 val shouldRemove = brushCells.all { it in extraObstacles }
 
