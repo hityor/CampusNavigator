@@ -64,7 +64,7 @@ fun MainMapScreen(
     var startCell by remember { mutableStateOf<GridCell?>(null) }
     var finishCell by remember { mutableStateOf<GridCell?>(null) }
     var path by remember { mutableStateOf<List<GridCell>>(emptyList()) }
-    var routeMessage by remember { mutableStateOf<String?>(null) }
+    var routeNotFound by remember { mutableStateOf(false) }
     var isDrawingObstacles by remember { mutableStateOf(false) }
     var extraObstacles by remember { mutableStateOf<Set<GridCell>>(emptySet()) }
     var isAnimating by remember { mutableStateOf(false) }
@@ -109,7 +109,7 @@ fun MainMapScreen(
         startCell = null
         finishCell = null
         path = emptyList()
-        routeMessage = null
+        routeNotFound = false
         extraObstacles = emptySet()
         isAnimating = false
         overlayBitmap = gridMap.createEmptyOverlayBitmap()
@@ -166,7 +166,8 @@ fun MainMapScreen(
                 AStarSheetContent(
                     startCell = startCell,
                     finishCell = finishCell,
-                    routeMessage = routeMessage,
+                    path = path,
+                    routeNotFound = routeNotFound,
                     obstacleCount = extraObstacles.size,
                     isDrawingObstacles = isDrawingObstacles,
                     isAnimating = isAnimating,
@@ -175,8 +176,6 @@ fun MainMapScreen(
                     },
                     onClearObstacles = {
                         extraObstacles = emptySet()
-                        path = emptyList()
-                        routeMessage = null
                         overlayBitmap = gridMap.createEmptyOverlayBitmap()
                     },
                     onBuildRoute = {
@@ -223,11 +222,8 @@ fun MainMapScreen(
                                 }
 
                                 path = resultPath ?: emptyList()
+                                routeNotFound = resultPath== null
                                 isAnimating = false
-                                routeMessage =
-                                    if (path.isNotEmpty()) "Маршрут: ${path.size} клеток"
-                                    else "Маршрут не найден"
-
                             }
 
                         }
@@ -287,8 +283,6 @@ fun MainMapScreen(
                 }
 
                 extraObstacles = newObstacles
-                path = emptyList()
-                routeMessage = null
 
                 overlayBitmap = gridMap.createAStarOverlayBitmap(
                     visited = emptySet(),
@@ -304,20 +298,20 @@ fun MainMapScreen(
                         startCell == null -> {
                             startCell = cell
                             path = emptyList()
-                            routeMessage = null
+                            routeNotFound = false
                         }
 
                         finishCell == null -> {
                             finishCell = cell
                             path = emptyList()
-                            routeMessage = null
+                            routeNotFound = false
                         }
 
                         else -> {
                             startCell = cell
                             finishCell = null
                             path = emptyList()
-                            routeMessage = null
+                            routeNotFound = false
                         }
                     }
 
