@@ -5,19 +5,49 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.gridCellToLatLng
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
+import com.example.campusnavigator.ui.theme.GreenAccent
+import com.example.campusnavigator.ui.theme.NavyPrimary
 import org.maplibre.android.annotations.IconFactory
 import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.annotations.PolylineOptions
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
 
+fun createLabeledMarkerBitmap(label: String, color: Int): Bitmap {
+    val size = 80
+    val bitmap = createBitmap(size, size)
+    val canvas = Canvas(bitmap)
+
+    canvas.drawCircle(size / 2f, size / 2f, size / 2f - 2f, Paint().apply {
+        this.color = Color.WHITE
+        isAntiAlias = true
+    })
+
+    canvas.drawCircle(size / 2f, size / 2f, size / 2f - 5f, Paint().apply {
+        this.color = color
+        isAntiAlias = true
+    })
+
+    canvas.drawText(label, size / 2f, size / 2f + 6f, Paint().apply {
+        this.color = Color.WHITE
+        textSize = 34f
+        textAlign = Paint.Align.CENTER
+        isFakeBoldText = true
+        isAntiAlias = true
+    })
+
+    return bitmap
+}
+
 fun renderAStar(
     map: MapLibreMap,
+    context: Context,
     gridMap: GridMap,
     startCell: GridCell?,
     finishCell: GridCell?,
@@ -25,15 +55,19 @@ fun renderAStar(
 ) {
     if (startCell != null) {
         val pos = gridCellToLatLng(startCell.row, startCell.col, gridMap)
+        val icon = IconFactory.getInstance(context)
+            .fromBitmap(createLabeledMarkerBitmap("A", GreenAccent.toArgb()))
         map.addMarker(
-            MarkerOptions().position(pos).title("Start")
+            MarkerOptions().position(pos).title("Старт").icon(icon)
         )
     }
 
     if (finishCell != null) {
         val pos = gridCellToLatLng(finishCell.row, finishCell.col, gridMap)
+        val icon = IconFactory.getInstance(context)
+            .fromBitmap(createLabeledMarkerBitmap("B", NavyPrimary.toArgb()))
         map.addMarker(
-            MarkerOptions().position(pos).title("Finish")
+            MarkerOptions().position(pos).title("Финиш").icon(icon)
         )
     }
 
@@ -45,8 +79,8 @@ fun renderAStar(
         map.addPolyline(
             PolylineOptions()
                 .addAll(pathPoints)
-                .color(Color.BLUE)
-                .width(3f)
+                .color(GreenAccent.toArgb())
+                .width(5f)
         )
     }
 }

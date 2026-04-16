@@ -77,7 +77,7 @@ fun MapViewContainer(
         map.clear()
 
         when (currentMode) {
-            MapMode.ASTAR -> renderAStar(map, gridMap, startCell, finishCell, path)
+            MapMode.ASTAR -> renderAStar(map, context, gridMap, startCell, finishCell, path)
             MapMode.CLUSTERING -> renderClustering(map, context, clusteredPlaces)
             MapMode.GENETIC -> {}
             MapMode.ANT -> {}

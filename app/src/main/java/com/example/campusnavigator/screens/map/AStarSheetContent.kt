@@ -40,13 +40,16 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.campusnavigator.GridCell
+import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.ui.theme.GreenAccent
 import com.example.campusnavigator.ui.theme.GreenLight
 import com.example.campusnavigator.ui.theme.NavyPrimary
 import com.example.campusnavigator.ui.theme.TextSecondary
+import kotlin.math.roundToInt
 
 @Composable
 fun AStarSheetContent(
+    gridMap: GridMap,
     startCell: GridCell?,
     finishCell: GridCell?,
     path: List<GridCell>,
@@ -77,14 +80,14 @@ fun AStarSheetContent(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             RouteStep(
-                number = 1,
+                title = "A",
                 label = "Старт",
                 isDone = startCell != null,
                 isActive = startCell == null,
                 modifier = Modifier.weight(1f)
             )
             RouteStep(
-                number = 2,
+                title = "B",
                 label = "Финиш",
                 isDone = finishCell != null,
                 isActive = startCell != null && finishCell == null,
@@ -142,8 +145,13 @@ fun AStarSheetContent(
                             fontWeight = FontWeight.SemiBold,
                             color = NavyPrimary
                         )
+
+                        val cellSizeMeters = gridMap.cellSize
+                        val distanceMeters = (path.size * cellSizeMeters).roundToInt()
+                        val walkMinutes = (distanceMeters / 83.0).roundToInt()
+
                         Text(
-                            text = "${path.size * 7} м: ~${path.size * 7 / 83} мин пешком",
+                            text = "$distanceMeters м: ~$walkMinutes мин пешком",
                             style = MaterialTheme.typography.bodySmall,
                             color = TextSecondary
                         )
@@ -219,7 +227,7 @@ fun AStarSheetContent(
 
 @Composable
 fun RouteStep(
-    number: Int,
+    title: String,
     label: String,
     isDone: Boolean,
     isActive: Boolean,
@@ -252,7 +260,7 @@ fun RouteStep(
                 )
             } else {
                 Text(
-                    text = number.toString(),
+                    text = title,
                     color = if (isActive) Color.White else Color.Gray,
                     style = MaterialTheme.typography.bodySmall
                 )

@@ -137,9 +137,6 @@ fun GridMap.createAStarOverlayBitmap(
     val obstaclePaint = Paint().apply { color = Color.RED }
     canvas.drawCells(obstacles, scale, obstaclePaint)
 
-    val pathPaint = Paint().apply { color = GreenAccent.toArgb() }
-    canvas.drawCells(path, scale, pathPaint)
-
     return bitmap
 }
 

@@ -164,6 +164,7 @@ fun MainMapScreen(
         when (currentMode) {
             MapMode.ASTAR -> {
                 AStarSheetContent(
+                    gridMap = gridMap,
                     startCell = startCell,
                     finishCell = finishCell,
                     path = path,
