@@ -400,9 +400,7 @@ fun MainMapScreen(
                 }
             },
             modifier = Modifier
-                .fillMaxSize()
-        )
-            },
+                .fillMaxSize(),
             antStartCell = antStartCell,
             antResult = antResult,
             onAntStartSelected = { cell ->
