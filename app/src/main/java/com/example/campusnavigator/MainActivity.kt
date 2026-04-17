@@ -91,7 +91,10 @@ class MainActivity : ComponentActivity() {
                         }
 
                         composable("decisionTree") {
-                            TreeScreen(this@MainActivity)
+                            TreeScreen(
+                                context = this@MainActivity,
+                                onBackClick = { navController.popBackStack() }
+                            )
                         }
 
                         composable("neural") {
