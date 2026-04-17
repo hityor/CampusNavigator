@@ -25,21 +25,33 @@ fun loadFeatureNames(context: Context): List<String> {
     return List(array.length()) { array.getString(it) }
 }
 
-fun convertJsonToGraph(node: JSONObject, path: List<String>, nodeId: String = "root"): GraphNode {
+fun convertJsonToGraph(node: JSONObject,
+                       path: List<String>,
+                       nodeId: String = "root",
+                       parentCondition: String? = null): GraphNode {
     try {
         val isLeaf = node.getBoolean("leaf")
-
         val feature = if (!isLeaf) node.getString("feature") else null
         val value = if (!isLeaf) node.getString("value") else null
         val result = if (isLeaf) node.getString("class") else null
 
-        val isHighlighted = if (isLeaf) {
-            path.lastOrNull()?.contains(result ?: "") == true ||
-                    path.any { it.contains(result ?: "") }
-        } else {
-            val condition = "$feature == $value"
-            path.any { it == condition || it.contains(condition) }
+        val condition = if (!isLeaf) "$feature == $value" else null
+        val negativeCondition = if (!isLeaf) "$feature != $value" else null
+        val leftIsLeaf = node.optJSONObject("left")?.getBoolean("leaf") == true
+        val rightIsLeaf = node.optJSONObject("right")?.getBoolean("leaf") == true
+
+        val isHighlighted = if (path.isEmpty()) false
+        else if (nodeId == "root") true
+        else if (isLeaf) {
+            val lastCondition = path.lastOrNull()
+            lastCondition == parentCondition
         }
+        else{
+            path.first() == condition || path.first() == negativeCondition
+        }
+
+        val leftPath = if (isHighlighted && !leftIsLeaf) path.drop(1) else path
+        val rightPath = if (isHighlighted && !rightIsLeaf) path.drop(1) else path
 
         return GraphNode(
             id = nodeId,
@@ -50,7 +62,7 @@ fun convertJsonToGraph(node: JSONObject, path: List<String>, nodeId: String = "r
             isHighlighted = isHighlighted,
             left = if (!isLeaf) {
                 try {
-                    convertJsonToGraph(node.getJSONObject("left"), path, "${nodeId}_L")
+                    convertJsonToGraph(node.getJSONObject("left"), leftPath, "${nodeId}_L",condition)
                 } catch (e: Exception) {
                     println("Ошибка левого потомка $nodeId: ${e.message}")
                     null
@@ -58,7 +70,7 @@ fun convertJsonToGraph(node: JSONObject, path: List<String>, nodeId: String = "r
             } else null,
             right = if (!isLeaf) {
                 try {
-                    convertJsonToGraph(node.getJSONObject("right"), path, "${nodeId}_R")
+                    convertJsonToGraph(node.getJSONObject("right"), rightPath, "${nodeId}_R",negativeCondition)
                 } catch (e: Exception) {
                     println("Ошибка правого потомка $nodeId: ${e.message}")
                     null
@@ -89,6 +101,7 @@ val featureOptions = mapOf(
     "queue_tolerance" to listOf("low", "medium", "high"),
     "weather" to listOf("good", "bad")
 )
+
 
 
 fun predict(node: JSONObject, userData: Map<String, String>): Pair<String, List<String>> {

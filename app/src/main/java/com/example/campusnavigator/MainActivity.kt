@@ -13,11 +13,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.campusnavigator.algorithms.AI.NeuralAlgorithm
 import com.example.campusnavigator.algorithms.NeuralAlgorithm
 import com.example.campusnavigator.screens.DecisionTree.TreeScreen
 import com.example.campusnavigator.screens.DrawingBottomSheet
 import com.example.campusnavigator.screens.HomeScreen
 import com.example.campusnavigator.screens.SplashScreen
+import com.example.campusnavigator.screens.DecisionTree.TreeScreen
+import com.example.campusnavigator.screens.Neural_Network.NeuralNetworkScreen
 import com.example.campusnavigator.screens.map.MainMapScreen
 import com.example.campusnavigator.ui.theme.CampusNavigatorTheme
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +33,7 @@ class MainActivity : ComponentActivity() {
     private val gridMapState = mutableStateOf<GridMap?>(null)
     private val baseBitmapState = mutableStateOf<Bitmap?>(null)
     private val gridQuadState = mutableStateOf<LatLngQuad?>(null)
+    private val neuralAlgorithmState = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -45,7 +49,11 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         lifecycleScope.launch(Dispatchers.IO) {
-            NeuralAlgorithm.initialize(applicationContext)
+            NeuralAlgorithm.init(this@MainActivity)
+
+            withContext(Dispatchers.Main) {
+                neuralAlgorithmState.value = true
+            }
         }
 
         lifecycleScope.launch(Dispatchers.IO) {
@@ -66,13 +74,16 @@ class MainActivity : ComponentActivity() {
                 val grid = gridMapState.value
                 val baseBitmap = baseBitmapState.value
                 val quad = gridQuadState.value
+                val neural = neuralAlgorithmState.value
 
-                if (grid == null || baseBitmap == null || quad == null) {
+                if (grid == null || baseBitmap == null || quad == null || !neural) {
                     SplashScreen()
                 } else {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "home") {
+
                         composable("home") { HomeScreen(navController) }
+
                         composable("mainMap") {
                             MainMapScreen(
                                 gridMap = grid,
@@ -81,28 +92,18 @@ class MainActivity : ComponentActivity() {
                                 navController = navController
                             )
                         }
+
                         composable("decisionTree") {
                             TreeScreen(this@MainActivity)
                         }
+
                         composable("neural") {
-                            DrawingBottomSheet(
-                                onDismiss = { navController.popBackStack() },
-                                onSubmitted = { rating ->
-                                    navController.popBackStack()
-                                }
-                            )
+                            NeuralNetworkScreen()
                         }
                     }
                 }
 
             }
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        lifecycleScope.launch(Dispatchers.IO) {
-            NeuralAlgorithm.close()
         }
     }
 }
