@@ -9,6 +9,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
 import com.example.campusnavigator.ui.theme.NavyPrimary
 import com.example.campusnavigator.ui.theme.TextSecondary
+import com.example.campusnavigator.algorithms.Ant
+import com.example.campusnavigator.algorithms.AntState
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngQuad
 import kotlin.math.PI
@@ -292,4 +294,107 @@ fun findNearestWalkableCell(
     }
 
     return null
+}
+
+fun GridMap.createAntOverlayBitmap(
+    homePheromone: Array<DoubleArray>?,
+    foodPheromone: Array<DoubleArray>?,
+    ants: List<Ant>,
+    obstacles: Set<GridCell> = emptySet()
+): Bitmap {
+    val scale = 4
+    val bitmap = createBitmap(width * scale, height * scale)
+    val canvas = Canvas(bitmap)
+
+    homePheromone?.let { pheromone ->
+        val maxVal = pheromone.flatMap { it.asIterable() }.maxOrNull() ?: 1.0
+        for (r in 0 until height) {
+            for (c in 0 until width) {
+                val value = pheromone[r][c]
+                if (value > 1.0) {
+                    val alpha = (value / maxVal * 200).toInt().coerceIn(0, 255)
+                    val paint = Paint().apply {
+                        color = Color.argb(alpha, 255, 0, 0) // красный
+                    }
+                    canvas.drawRect(
+                        c * scale.toFloat(), r * scale.toFloat(),
+                        (c + 1) * scale.toFloat(), (r + 1) * scale.toFloat(),
+                        paint
+                    )
+                }
+            }
+        }
+    }
+
+    foodPheromone?.let { pheromone ->
+        val maxVal = pheromone.flatMap { it.asIterable() }.maxOrNull() ?: 1.0
+        for (r in 0 until height) {
+            for (c in 0 until width) {
+                val value = pheromone[r][c]
+                if (value > 1.0) {
+                    val alpha = (value / maxVal * 200).toInt().coerceIn(0, 255)
+                    val paint = Paint().apply {
+                        color = Color.argb(alpha, 0, 255, 0) // зелёный
+                    }
+                    canvas.drawRect(
+                        c * scale.toFloat(), r * scale.toFloat(),
+                        (c + 1) * scale.toFloat(), (r + 1) * scale.toFloat(),
+                        paint
+                    )
+                }
+            }
+        }
+    }
+
+    ants.forEach { ant ->
+        val cell = ant.position
+        val color = when (ant.state) {
+            AntState.SEARCHING -> Color.RED
+            AntState.RETURNING -> Color.GREEN
+        }
+        val paint = Paint().apply { this.color = color }
+
+        canvas.drawCircle(
+            (cell.col + 0.5f) * scale,
+            (cell.row + 0.5f) * scale,
+            scale * 0.4f,
+            paint
+        )
+    }
+
+    val obstaclePaint = Paint().apply { color = Color.BLACK }
+    for (cell in obstacles) {
+        canvas.drawRect(
+            cell.col * scale.toFloat(), cell.row * scale.toFloat(),
+            (cell.col + 1) * scale.toFloat(), (cell.row + 1) * scale.toFloat(),
+            obstaclePaint
+        )
+    }
+
+    return bitmap
+}
+
+fun GridMap.createAntResultOverlayBitmap(paths: List<List<GridCell>>): Bitmap {
+    val scale = 4
+    val bitmap = createBitmap(width * scale, height * scale)
+    val canvas = Canvas(bitmap)
+
+    val pathPaint = Paint().apply {
+        color = Color.argb(180, 0, 200, 0)
+        strokeWidth = 3f
+        style = Paint.Style.STROKE
+    }
+    for (path in paths) {
+        if (path.size < 2) continue
+        for (i in 0 until path.size - 1) {
+            val from = path[i]
+            val to = path[i + 1]
+            canvas.drawLine(
+                (from.col + 0.5f) * scale, (from.row + 0.5f) * scale,
+                (to.col + 0.5f) * scale, (to.row + 0.5f) * scale,
+                pathPaint
+            )
+        }
+    }
+    return bitmap
 }

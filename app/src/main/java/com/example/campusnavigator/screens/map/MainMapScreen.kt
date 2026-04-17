@@ -45,6 +45,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.maplibre.android.geometry.LatLngQuad
+import com.example.campusnavigator.algorithms.AntColonyOptimization
+import com.example.campusnavigator.algorithms.AntResult
+import com.example.campusnavigator.screens.map.models.CoworkingPlace
+import com.example.campusnavigator.screens.map.sampleCoworkingPlaces
+import com.example.campusnavigator.LatLngToEpsg3857
+import com.example.campusnavigator.createAntOverlayBitmap
+import com.example.campusnavigator.createAntResultOverlayBitmap
+import com.example.campusnavigator.epsg3857ToGridCell
+import com.example.campusnavigator.findNearestWalkableCell
+import kotlinx.coroutines.Job
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +85,22 @@ fun MainMapScreen(
 
     var clusterCount by remember { mutableIntStateOf(3) }
     var clusteredPlaces by remember { mutableStateOf<List<ClusteredFoodPlace>>(emptyList()) }
+
+    var antJob by remember { mutableStateOf<Job?>(null) }
+    var antStartCell by remember { mutableStateOf<GridCell?>(null) }
+    var antResult by remember { mutableStateOf<AntResult?>(null) }
+    var antIsAnimating by remember { mutableStateOf(false) }
+    var antNumAnts by remember { mutableIntStateOf(100) }
+    var antPlacedStudents by remember { mutableStateOf(0) }
+
+    val coworkingSpots = remember { sampleCoworkingPlaces }
+    val coworkingLocationCells = remember(coworkingSpots) {
+        coworkingSpots.map { spot ->
+            val (x, y) = LatLngToEpsg3857(spot.lat, spot.lon)
+            val rawCell = epsg3857ToGridCell(x, y, gridMap)
+            findNearestWalkableCell(rawCell, gridMap, maxRadius = 50) ?: rawCell
+        }
+    }
 
     fun refreshAStarOverlay(
         visited: Set<GridCell> = emptySet(),
@@ -120,9 +146,19 @@ fun MainMapScreen(
         clusteredPlaces = emptyList()
     }
 
+    fun clearAntStates() {
+        antJob?.cancel()
+        antJob = null
+        antStartCell = null
+        antResult = null
+        antIsAnimating = false
+        antPlacedStudents = 0
+    }
+
     fun resetAllModeStates() {
         clearAStarStates()
         clearClusteringState()
+        clearAntStates()
     }
 
     BottomSheetScaffold(topBar = {
@@ -182,6 +218,7 @@ fun MainMapScreen(
                     onBuildRoute = {
                         val start = startCell
                         val finish = finishCell
+
                         if (start != null && finish != null) {
                             scope.launch {
                                 isAnimating = true
@@ -247,7 +284,55 @@ fun MainMapScreen(
             }
 
             MapMode.ANT -> {
-                AntSheetContent()
+                AntSheetContent(
+                    startCell = antStartCell,
+                    coworkingSpots = coworkingSpots,
+                    isAnimating = antIsAnimating,
+                    result = antResult,
+                    numAnts = antNumAnts,
+                    onNumAntsChange = { antNumAnts = it },
+                    placedStudents = antPlacedStudents,
+                    onStartSelected = {},
+                    onRun = { numStudents ->
+                        antJob?.cancel()
+                        antJob = scope.launch {
+                            antIsAnimating = true
+                            antResult = null
+                            antPlacedStudents = 0
+
+                            val start = antStartCell ?: return@launch
+                            val comforts = coworkingSpots.map { it.comfort }
+                            val capacities = coworkingSpots.map { it.capacity }
+
+                            val aco = AntColonyOptimization(
+                                gridMap = gridMap,
+                                homeCell = start,
+                                locations = coworkingLocationCells,
+                                locationComforts = comforts,
+                                locationCapacities = capacities,
+                                totalStudentsToPlace = numStudents,
+                                numAnts = antNumAnts,
+                                onStep = { homePher, foodPher, ants, placed ->
+                                    antPlacedStudents = placed
+                                    overlayBitmap = gridMap.createAntOverlayBitmap(
+                                        homePheromone = homePher,
+                                        foodPheromone = foodPher,
+                                        ants = ants
+                                    )
+                                }
+                            )
+
+                            val result = withContext(Dispatchers.Default) { aco.run() }
+                            antResult = result
+                            antIsAnimating = false
+                            overlayBitmap = gridMap.createAntResultOverlayBitmap(result.paths)
+                        }
+                    },
+                    onClear = {
+                        clearAntStates()
+                        overlayBitmap = gridMap.createEmptyOverlayBitmap()
+                    }
+                )
             }
 
             MapMode.COWORKING -> {
@@ -316,6 +401,16 @@ fun MainMapScreen(
             },
             modifier = Modifier
                 .fillMaxSize()
+        )
+            },
+            antStartCell = antStartCell,
+            antResult = antResult,
+            onAntStartSelected = { cell ->
+                antStartCell = cell
+                antResult = null
+            },
+            coworkingSpots = coworkingSpots,
+            coworkingCells = coworkingLocationCells
         )
     }
 

@@ -15,9 +15,11 @@ import androidx.compose.ui.viewinterop.AndroidView
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.LatLngToEpsg3857
+import com.example.campusnavigator.algorithms.AntResult
 import com.example.campusnavigator.epsg3857ToGridCell
 import com.example.campusnavigator.findNearestWalkableCell
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
+import com.example.campusnavigator.screens.map.models.CoworkingPlace
 import com.example.campusnavigator.screens.map.models.MapMode
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
@@ -44,7 +46,12 @@ fun MapViewContainer(
     isAnimating: Boolean,
     onObstacleTapped: (GridCell) -> Unit,
     clusteredPlaces: List<ClusteredFoodPlace>,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    antStartCell: GridCell?,
+    antResult: AntResult?,
+    onAntStartSelected: (GridCell) -> Unit,
+    coworkingSpots: List<CoworkingPlace>,
+    coworkingCells: List<GridCell>
 ) {
     val context = LocalContext.current
     remember { MapLibre.getInstance(context) }
@@ -71,7 +78,8 @@ fun MapViewContainer(
         source?.setImage(overlayBitmap)
     }
 
-    LaunchedEffect(mapRef, currentMode, startCell, finishCell, path, clusteredPlaces) {
+    LaunchedEffect(mapRef, currentMode, startCell, finishCell, path, clusteredPlaces,
+        antStartCell, antResult) {
         val map = mapRef ?: return@LaunchedEffect
         map.clear()
 
@@ -79,11 +87,16 @@ fun MapViewContainer(
             MapMode.ASTAR -> renderAStar(map, context, gridMap, startCell, finishCell, path)
             MapMode.CLUSTERING -> renderClustering(map, context, clusteredPlaces)
             MapMode.GENETIC -> {}
-            MapMode.ANT -> {}
+            MapMode.ANT -> {
+                renderAnt(
+                    map, context, gridMap,
+                    antStartCell, antResult,
+                    coworkingSpots, coworkingCells
+                )
+            }
             MapMode.COWORKING -> {}
         }
     }
-
 
     AndroidView(
         modifier = modifier,
@@ -144,6 +157,14 @@ fun MapViewContainer(
                                     onCellSelectedState(selectedCell)
                                 }
                             }
+                        }
+
+                        if (currentModeState == MapMode.ANT) {
+                            val selectedCell = findNearestWalkableCell(tappedCell, gridMap, maxRadius = 3)
+                            if (selectedCell != null && !isAnimatingState) {
+                                onAntStartSelected(selectedCell)
+                            }
+                            return@addOnMapClickListener true
                         }
 
                         true

@@ -9,6 +9,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
+import com.example.campusnavigator.algorithms.AntResult
+import com.example.campusnavigator.epsg3857ToGridCell
 import com.example.campusnavigator.gridCellToLatLng
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
 import com.example.campusnavigator.ui.theme.GreenAccent
@@ -18,6 +20,7 @@ import org.maplibre.android.annotations.MarkerOptions
 import org.maplibre.android.annotations.PolylineOptions
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.maps.MapLibreMap
+import com.example.campusnavigator.screens.map.models.CoworkingPlace
 
 fun createLabeledMarkerBitmap(label: String, color: Int): Bitmap {
     val size = 80
@@ -57,25 +60,18 @@ fun renderAStar(
         val pos = gridCellToLatLng(startCell.row, startCell.col, gridMap)
         val icon = IconFactory.getInstance(context)
             .fromBitmap(createLabeledMarkerBitmap("A", GreenAccent.toArgb()))
-        map.addMarker(
-            MarkerOptions().position(pos).title("Старт").icon(icon)
-        )
+        map.addMarker(MarkerOptions().position(pos).title("Старт").icon(icon))
     }
 
     if (finishCell != null) {
         val pos = gridCellToLatLng(finishCell.row, finishCell.col, gridMap)
         val icon = IconFactory.getInstance(context)
             .fromBitmap(createLabeledMarkerBitmap("B", NavyPrimary.toArgb()))
-        map.addMarker(
-            MarkerOptions().position(pos).title("Финиш").icon(icon)
-        )
+        map.addMarker(MarkerOptions().position(pos).title("Финиш").icon(icon))
     }
 
     if (path.isNotEmpty()) {
-        val pathPoints = path.map { cell ->
-            gridCellToLatLng(cell.row, cell.col, gridMap)
-        }
-
+        val pathPoints = path.map { cell -> gridCellToLatLng(cell.row, cell.col, gridMap) }
         map.addPolyline(
             PolylineOptions()
                 .addAll(pathPoints)
@@ -86,15 +82,7 @@ fun renderAStar(
 }
 
 fun getColorForCluster(index: Int): Int {
-    val colors = listOf(
-        Color.RED,
-        Color.BLUE,
-        Color.GREEN,
-        Color.YELLOW,
-        Color.MAGENTA,
-        Color.CYAN
-    )
-
+    val colors = listOf(Color.RED, Color.BLUE, Color.GREEN, Color.YELLOW, Color.MAGENTA, Color.CYAN)
     return colors[index % colors.size]
 }
 
@@ -103,25 +91,20 @@ fun createMarkerBitmap(color: Int): Bitmap {
     val bitmap = createBitmap(size, size)
     val canvas = Canvas(bitmap)
 
-    val shadowPaint = Paint().apply {
+    canvas.drawCircle(size / 2f, size / 2f + 3f, size / 2.6f, Paint().apply {
         this.color = color
         isAntiAlias = true
-    }
-    canvas.drawCircle(size / 2f, size / 2f + 3f, size / 2.6f, shadowPaint)
-
-    val fillPaint = Paint().apply {
+    })
+    canvas.drawCircle(size / 2f, size / 2f, size / 2.8f, Paint().apply {
         this.color = color
         isAntiAlias = true
-    }
-    canvas.drawCircle(size / 2f, size / 2f, size / 2.8f, fillPaint)
-
-    val borderPaint = Paint().apply {
+    })
+    canvas.drawCircle(size / 2f, size / 2f, size / 2.8f, Paint().apply {
         this.color = Color.WHITE
         isAntiAlias = true
         style = Paint.Style.STROKE
         strokeWidth = 5f
-    }
-    canvas.drawCircle(size / 2f, size / 2f, size / 2.8f, borderPaint)
+    })
 
     return bitmap
 }
@@ -132,16 +115,49 @@ fun renderClustering(
     clusteredPlaces: List<ClusteredFoodPlace>
 ) {
     val iconFactory = IconFactory.getInstance(context)
-
     clusteredPlaces.forEach { item ->
         val color = getColorForCluster(item.clusterIndex)
-        val bitmap = createMarkerBitmap(color)
-        val icon = iconFactory.fromBitmap(bitmap)
-
+        val icon = iconFactory.fromBitmap(createMarkerBitmap(color))
         map.addMarker(
             MarkerOptions()
                 .position(LatLng(item.place.lat, item.place.lon))
                 .title("${item.place.name}. кластер ${item.clusterIndex + 1}")
+                .icon(icon)
+        )
+    }
+}
+
+fun renderAnt(
+    map: MapLibreMap,
+    context: Context,
+    gridMap: GridMap,
+    startCell: GridCell?,
+    result: AntResult?,
+    coworkingSpots: List<CoworkingPlace>,
+    coworkingCells: List<GridCell>
+) {
+    if (startCell != null) {
+        val pos = gridCellToLatLng(startCell.row, startCell.col, gridMap)
+        val icon = IconFactory.getInstance(context)
+            .fromBitmap(createLabeledMarkerBitmap("S", GreenAccent.toArgb()))
+        map.addMarker(MarkerOptions().position(pos).title("Старт").icon(icon))
+    }
+
+    coworkingSpots.forEachIndexed { index, spot ->
+        val pos = gridCellToLatLng(coworkingCells[index].row, coworkingCells[index].col, gridMap)
+        val load = result?.locationLoads?.getOrNull(index) ?: 0
+        val capacity = spot.capacity
+        val color = when {
+            load >= capacity -> Color.RED
+            load > capacity * 0.8 -> Color.YELLOW
+            else -> Color.GREEN
+        }
+        val bitmap = createLabeledMarkerBitmap("$load/$capacity", color)
+        val icon = IconFactory.getInstance(context).fromBitmap(bitmap)
+        map.addMarker(
+            MarkerOptions()
+                .position(pos)
+                .title("${spot.name} (комфорт: ${"%.1f".format(spot.comfort)})")
                 .icon(icon)
         )
     }
