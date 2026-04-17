@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -78,51 +80,49 @@ fun HomeScreen(navController: NavController) {
             )
         }) { innerPadding ->
 
-        Column(
-            Modifier
+        LazyColumn(
+            modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding),
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .background(NavyPrimary)
-            ) {
-                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)) {
-                    Text(
-                        "Томский государственный университет",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = Color.White.copy(alpha = 0.75f)
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "Добро пожаловать",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = Color.White
-                    )
+            item {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(NavyPrimary)
+                ) {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)) {
+                        Text(
+                            "Томский государственный университет",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.75f)
+                        )
+                        Spacer(Modifier.height(4.dp))
+                        Text(
+                            text = "Добро пожаловать",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = Color.White
+                        )
+                    }
                 }
             }
 
 
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
+            item {
                 Text(
                     text = "Выберите раздел",
                     style = MaterialTheme.typography.bodySmall,
                     color = TextSecondary,
-                    modifier = Modifier.padding(4.dp)
+                    modifier = Modifier.padding(start = 20.dp, top = 16.dp, bottom = 4.dp)
                 )
+            }
 
-                homeSections.forEach { item ->
-                    HomeCard(
-                        item = item,
-                        onClick = { navController.navigate(item.route) }
-                    )
-                }
+            items(homeSections) { item ->
+                HomeCard(
+                    item = item,
+                    onClick = { navController.navigate(item.route) },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                )
             }
         }
     }
@@ -130,10 +130,10 @@ fun HomeScreen(navController: NavController) {
 
 
 @Composable
-fun HomeCard(item: HomeSectionItem, onClick: () -> Unit) {
+fun HomeCard(item: HomeSectionItem, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
             containerColor = Color.White

@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Explore
@@ -75,24 +77,27 @@ fun MapModeSelectionSheet(
 fun ModeSelectionContent(
     onModeSelected: (MapMode) -> Unit
 ) {
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp)
             .padding(bottom = 32.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(
-            text = "Режим карты",
-            style = MaterialTheme.typography.titleMedium,
-            color = NavyPrimary,
-            modifier = Modifier.fillMaxWidth(),
-            textAlign = TextAlign.Center
-        )
 
-        Spacer(Modifier.height(4.dp))
+        item {
+            Text(
+                text = "Режим карты",
+                style = MaterialTheme.typography.titleMedium,
+                color = NavyPrimary,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        }
 
-        modeEntries.forEach { entry ->
+        item { Spacer(Modifier.height(4.dp)) }
+
+        items(modeEntries) { entry ->
             ModeCard(entry = entry, onClick = { onModeSelected(entry.mode) })
         }
     }
