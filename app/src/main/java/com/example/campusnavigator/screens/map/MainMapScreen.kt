@@ -2,6 +2,7 @@ package com.example.campusnavigator.screens.map
 
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -317,7 +318,10 @@ fun MainMapScreen(
 
                     refreshAStarOverlay(currentPath = emptyList())
                 }
-            })
+            },
+            modifier = Modifier
+                .fillMaxSize()
+        )
     }
 
     if (showModeSheet) {
