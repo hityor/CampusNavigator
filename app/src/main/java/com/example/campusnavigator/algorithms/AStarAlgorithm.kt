@@ -5,10 +5,6 @@ import com.example.campusnavigator.GridMap
 import java.util.PriorityQueue
 import kotlin.math.abs
 
-data class AStarStep(
-    val current: GridCell
-)
-
 fun heuristic(a: GridCell, b: GridCell): Int {
     return abs(a.row - b.row) + abs(a.col - b.col)
 }
@@ -34,16 +30,17 @@ fun getWalkableNeighbors(cell: GridCell, grid: Array<IntArray>): List<GridCell> 
     return neighbors
 }
 
-fun findPathWithSteps(
+suspend fun findPathWithStepsStreaming(
     startCell: GridCell,
     finishCell: GridCell,
     gridMap: GridMap,
-    extraObstacles: Set<GridCell> = emptySet()
-): Pair<List<GridCell>?, List<AStarStep>> {
+    extraObstacles: Set<GridCell> = emptySet(),
+    onStep: suspend (visited: Set<GridCell>, current: GridCell) -> Unit
+): List<GridCell>? {
 
-    if (gridMap.grid[startCell.row][startCell.col] != 1) return Pair(null, emptyList())
-    if (gridMap.grid[finishCell.row][finishCell.col] != 1) return Pair(null, emptyList())
-    if (startCell in extraObstacles || finishCell in extraObstacles) return Pair(null, emptyList())
+    if (gridMap.grid[startCell.row][startCell.col] != 1) return null
+    if (gridMap.grid[finishCell.row][finishCell.col] != 1) return null
+    if (startCell in extraObstacles || finishCell in extraObstacles) return null
 
 
     val gScore = mutableMapOf<GridCell, Int>()
@@ -52,10 +49,12 @@ fun findPathWithSteps(
     })
     val closedSet = mutableSetOf<GridCell>()
     val cameFrom = mutableMapOf<GridCell, GridCell>()
-    val steps = mutableListOf<AStarStep>()
 
     openQueue.add(startCell)
     gScore[startCell] = 0
+
+    var iterationCount = 0
+    val reportEvery = 10
 
     while (openQueue.isNotEmpty()) {
         val current = openQueue.poll()!!
@@ -63,10 +62,14 @@ fun findPathWithSteps(
         if (current in closedSet) continue
 
         closedSet.add(current)
-        steps.add(AStarStep(current))
+
+        if (iterationCount % reportEvery == 0) {
+            onStep(closedSet, current)
+        }
+        iterationCount++
 
         if (current == finishCell) {
-            return Pair(reconstructPath(finishCell, cameFrom), steps)
+            return reconstructPath(finishCell, cameFrom)
         }
 
         val neighbors = getWalkableNeighbors(current, gridMap.grid)
@@ -84,7 +87,7 @@ fun findPathWithSteps(
         }
     }
 
-    return Pair(null, steps)
+    return null
 }
 
 fun reconstructPath(finishCell: GridCell, cameFrom: Map<GridCell, GridCell>): List<GridCell> {

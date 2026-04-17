@@ -123,7 +123,7 @@ fun AStarSheetContent(
 
             IconButton(
                 onClick = onClear,
-                enabled = startCell != null || finishCell != null,
+                enabled = (startCell != null || finishCell != null) && (!isAnimating),
                 modifier = Modifier
                     .size(52.dp)
                     .background(

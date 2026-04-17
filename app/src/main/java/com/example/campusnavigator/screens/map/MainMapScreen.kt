@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
-import com.example.campusnavigator.algorithms.findPathWithSteps
+import com.example.campusnavigator.algorithms.findPathWithStepsStreaming
 import com.example.campusnavigator.algorithms.runKMeans
 import com.example.campusnavigator.createAStarOverlayBitmap
 import com.example.campusnavigator.createEmptyOverlayBitmap
@@ -182,34 +182,29 @@ fun MainMapScreen(
                     onBuildRoute = {
                         val start = startCell
                         val finish = finishCell
-
                         if (start != null && finish != null) {
                             scope.launch {
                                 isAnimating = true
                                 path = emptyList()
 
-                                val (resultPath, steps) = withContext(Dispatchers.Default) {
-                                    findPathWithSteps(start, finish, gridMap, extraObstacles)
-                                }
-                                val animatedVisited = mutableSetOf<GridCell>()
-                                val skipEvery = maxOf(1, steps.size / 100)
-
-                                for (i in steps.indices) {
-                                    val step = steps[i]
-                                    animatedVisited.add(step.current)
-
-                                    if (i % skipEvery == 0 || i == steps.lastIndex) {
-                                        val bmp = withContext(Dispatchers.Default) {
-                                            gridMap.createAStarOverlayBitmap(
-                                                visited = animatedVisited,
-                                                current = step.current,
-                                                obstacles = extraObstacles,
-                                                path = emptyList()
-                                            )
+                                val resultPath = withContext(Dispatchers.Default) {
+                                    findPathWithStepsStreaming(
+                                        start,
+                                        finish,
+                                        gridMap,
+                                        extraObstacles
+                                    ) { visited, current ->
+                                        val bmp = gridMap.createAStarOverlayBitmap(
+                                            visited = visited,
+                                            current = current,
+                                            obstacles = extraObstacles,
+                                            path = emptyList()
+                                        )
+                                        withContext(Dispatchers.Main) {
+                                            overlayBitmap = bmp
                                         }
+                                        delay(10)
 
-                                        overlayBitmap = bmp
-                                        delay(50)
                                     }
                                 }
 
