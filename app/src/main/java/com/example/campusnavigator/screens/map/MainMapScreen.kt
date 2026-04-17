@@ -44,6 +44,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.maplibre.android.geometry.LatLngQuad
+import com.example.campusnavigator.algorithms.AntColonyOptimization
+import com.example.campusnavigator.algorithms.AntResult
+import com.example.campusnavigator.screens.map.models.CoworkingPlace
+import com.example.campusnavigator.screens.map.sampleCoworkingPlaces
+import com.example.campusnavigator.LatLngToEpsg3857
+import com.example.campusnavigator.createAntOverlayBitmap
+import com.example.campusnavigator.createAntResultOverlayBitmap
+import com.example.campusnavigator.epsg3857ToGridCell
+import com.example.campusnavigator.findNearestWalkableCell
+import kotlinx.coroutines.Job
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -75,6 +85,22 @@ fun MainMapScreen(
     var clusterCount by remember { mutableIntStateOf(3) }
     var clusteredPlaces by remember { mutableStateOf<List<ClusteredFoodPlace>>(emptyList()) }
 
+    var antJob by remember { mutableStateOf<Job?>(null) }
+    var antStartCell by remember { mutableStateOf<GridCell?>(null) }
+    var antResult by remember { mutableStateOf<AntResult?>(null) }
+    var antIsAnimating by remember { mutableStateOf(false) }
+    var antNumAnts by remember { mutableIntStateOf(100) }
+    var antPlacedStudents by remember { mutableStateOf(0) }
+
+    val coworkingSpots = remember { sampleCoworkingPlaces }
+    val coworkingLocationCells = remember(coworkingSpots) {
+        coworkingSpots.map { spot ->
+            val (x, y) = LatLngToEpsg3857(spot.lat, spot.lon)
+            val rawCell = epsg3857ToGridCell(x, y, gridMap)
+            findNearestWalkableCell(rawCell, gridMap, maxRadius = 50) ?: rawCell
+        }
+    }
+
     fun refreshAStarOverlay(
         visited: Set<GridCell> = emptySet(),
         current: GridCell? = null,
@@ -90,17 +116,13 @@ fun MainMapScreen(
 
     fun buildObstacleBrush(center: GridCell, radius: Int = 2): Set<GridCell> {
         val result = mutableSetOf<GridCell>()
-
         for (row in center.row - radius..center.row + radius) {
             for (col in center.col - radius..center.col + radius) {
                 val cell = GridCell(row, col)
-
                 if (!isInsideGrid(cell, gridMap)) continue
-
                 result.add(cell)
             }
         }
-
         return result
     }
 
@@ -119,18 +141,25 @@ fun MainMapScreen(
         clusteredPlaces = emptyList()
     }
 
+    fun clearAntStates() {
+        antJob?.cancel()
+        antJob = null
+        antStartCell = null
+        antResult = null
+        antIsAnimating = false
+        antPlacedStudents = 0
+    }
+
     fun resetAllModeStates() {
         clearAStarStates()
         clearClusteringState()
+        clearAntStates()
     }
 
     BottomSheetScaffold(topBar = {
         CenterAlignedTopAppBar(
-            title = {
-                Text(
-                    text = currentMode.title, color = Color.White
-                )
-            }, navigationIcon = {
+            title = { Text(text = currentMode.title, color = Color.White) },
+            navigationIcon = {
                 IconButton(onClick = { navController.popBackStack() }) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -138,7 +167,8 @@ fun MainMapScreen(
                         tint = Color.White
                     )
                 }
-            }, actions = {
+            },
+            actions = {
                 IconButton(onClick = { showModeSheet = true }) {
                     Icon(
                         imageVector = Icons.Default.Menu,
@@ -146,9 +176,8 @@ fun MainMapScreen(
                         tint = Color.White
                     )
                 }
-            }, colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = NavyPrimary
-            )
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(containerColor = NavyPrimary)
         )
     }, scaffoldState = scaffoldState, sheetPeekHeight = 64.dp, sheetDragHandle = {
         Surface(
@@ -171,9 +200,7 @@ fun MainMapScreen(
                     obstacleCount = extraObstacles.size,
                     isDrawingObstacles = isDrawingObstacles,
                     isAnimating = isAnimating,
-                    onToggleDrawMode = {
-                        isDrawingObstacles = !isDrawingObstacles
-                    },
+                    onToggleDrawMode = { isDrawingObstacles = !isDrawingObstacles },
                     onClearObstacles = {
                         extraObstacles = emptySet()
                         overlayBitmap = gridMap.createEmptyOverlayBitmap()
@@ -181,24 +208,20 @@ fun MainMapScreen(
                     onBuildRoute = {
                         val start = startCell
                         val finish = finishCell
-
                         if (start != null && finish != null) {
                             scope.launch {
                                 isAnimating = true
                                 path = emptyList()
-
                                 val (resultPath, steps) = withContext(Dispatchers.Default) {
                                     findPathWithSteps(start, finish, gridMap, extraObstacles)
                                 }
                                 val animatedVisited = mutableSetOf<GridCell>()
                                 val skipEvery = maxOf(1, steps.size / 100)
-
                                 for (i in steps.indices) {
                                     val step = steps[i]
                                     animatedVisited.add(step.current)
-
                                     if (i % skipEvery == 0 || i == steps.lastIndex) {
-                                        val bmp = withContext(Dispatchers.Default) {
+                                        overlayBitmap = withContext(Dispatchers.Default) {
                                             gridMap.createAStarOverlayBitmap(
                                                 visited = animatedVisited,
                                                 current = step.current,
@@ -206,12 +229,9 @@ fun MainMapScreen(
                                                 path = emptyList()
                                             )
                                         }
-
-                                        overlayBitmap = bmp
                                         delay(50)
                                     }
                                 }
-
                                 overlayBitmap = withContext(Dispatchers.Default) {
                                     gridMap.createAStarOverlayBitmap(
                                         visited = emptySet(),
@@ -220,17 +240,14 @@ fun MainMapScreen(
                                         path = resultPath ?: emptyList()
                                     )
                                 }
-
                                 path = resultPath ?: emptyList()
                                 routeNotFound = resultPath == null
                                 isAnimating = false
                             }
-
                         }
                     },
-                    onClear = {
-                        clearAStarStates()
-                    })
+                    onClear = { clearAStarStates() }
+                )
             }
 
             MapMode.CLUSTERING -> {
@@ -238,12 +255,9 @@ fun MainMapScreen(
                     clusterCount = clusterCount,
                     clusteredPlaces = clusteredPlaces,
                     onClusterCountChange = { clusterCount = it },
-                    onRun = {
-                        clusteredPlaces = runKMeans(sampleFoodPlaces, clusterCount)
-                    },
-                    onClear = {
-                        clearClusteringState()
-                    })
+                    onRun = { clusteredPlaces = runKMeans(sampleFoodPlaces, clusterCount) },
+                    onClear = { clearClusteringState() }
+                )
             }
 
             MapMode.GENETIC -> {
@@ -251,7 +265,55 @@ fun MainMapScreen(
             }
 
             MapMode.ANT -> {
-                AntSheetContent()
+                AntSheetContent(
+                    startCell = antStartCell,
+                    coworkingSpots = coworkingSpots,
+                    isAnimating = antIsAnimating,
+                    result = antResult,
+                    numAnts = antNumAnts,
+                    onNumAntsChange = { antNumAnts = it },
+                    placedStudents = antPlacedStudents,
+                    onStartSelected = {},
+                    onRun = { numStudents ->
+                        antJob?.cancel()
+                        antJob = scope.launch {
+                            antIsAnimating = true
+                            antResult = null
+                            antPlacedStudents = 0
+
+                            val start = antStartCell ?: return@launch
+                            val comforts = coworkingSpots.map { it.comfort }
+                            val capacities = coworkingSpots.map { it.capacity }
+
+                            val aco = AntColonyOptimization(
+                                gridMap = gridMap,
+                                homeCell = start,
+                                locations = coworkingLocationCells,
+                                locationComforts = comforts,
+                                locationCapacities = capacities,
+                                totalStudentsToPlace = numStudents,
+                                numAnts = antNumAnts,
+                                onStep = { homePher, foodPher, ants, placed ->
+                                    antPlacedStudents = placed
+                                    overlayBitmap = gridMap.createAntOverlayBitmap(
+                                        homePheromone = homePher,
+                                        foodPheromone = foodPher,
+                                        ants = ants
+                                    )
+                                }
+                            )
+
+                            val result = withContext(Dispatchers.Default) { aco.run() }
+                            antResult = result
+                            antIsAnimating = false
+                            overlayBitmap = gridMap.createAntResultOverlayBitmap(result.paths)
+                        }
+                    },
+                    onClear = {
+                        clearAntStates()
+                        overlayBitmap = gridMap.createEmptyOverlayBitmap()
+                    }
+                )
             }
 
             MapMode.COWORKING -> {
@@ -259,7 +321,6 @@ fun MainMapScreen(
             }
         }
     }) {
-
         MapViewContainer(
             gridMap = gridMap,
             baseBitmap = baseBitmap,
@@ -273,21 +334,12 @@ fun MainMapScreen(
             isAnimating = isAnimating,
             onObstacleTapped = { cell ->
                 val brushCells = buildObstacleBrush(cell, radius = 3)
-
                 val shouldRemove = brushCells.all { it in extraObstacles }
-
-                val newObstacles = if (shouldRemove) {
-                    extraObstacles - brushCells
-                } else {
-                    extraObstacles + brushCells
-                }
-
-                extraObstacles = newObstacles
-
+                extraObstacles = if (shouldRemove) extraObstacles - brushCells else extraObstacles + brushCells
                 overlayBitmap = gridMap.createAStarOverlayBitmap(
                     visited = emptySet(),
                     current = null,
-                    obstacles = newObstacles,
+                    obstacles = extraObstacles,
                     path = emptyList()
                 )
             },
@@ -300,13 +352,11 @@ fun MainMapScreen(
                             path = emptyList()
                             routeNotFound = false
                         }
-
                         finishCell == null -> {
                             finishCell = cell
                             path = emptyList()
                             routeNotFound = false
                         }
-
                         else -> {
                             startCell = cell
                             finishCell = null
@@ -314,10 +364,18 @@ fun MainMapScreen(
                             routeNotFound = false
                         }
                     }
-
                     refreshAStarOverlay(currentPath = emptyList())
                 }
-            })
+            },
+            antStartCell = antStartCell,
+            antResult = antResult,
+            onAntStartSelected = { cell ->
+                antStartCell = cell
+                antResult = null
+            },
+            coworkingSpots = coworkingSpots,
+            coworkingCells = coworkingLocationCells
+        )
     }
 
     if (showModeSheet) {
@@ -326,9 +384,9 @@ fun MainMapScreen(
             onModeSelected = {
                 currentMode = it
                 overlayBitmap = gridMap.createEmptyOverlayBitmap()
-            },
-            onResetModeState = {
                 resetAllModeStates()
-            })
+            },
+            onResetModeState = { resetAllModeStates() }
+        )
     }
 }

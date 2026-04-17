@@ -15,22 +15,17 @@ fun heuristic(a: GridCell, b: GridCell): Int {
 
 fun getWalkableNeighbors(cell: GridCell, grid: Array<IntArray>): List<GridCell> {
     val neighbors = mutableListOf<GridCell>()
-
     val directions = listOf(
         Pair(-1, 0), Pair(1, 0), Pair(0, -1), Pair(0, 1)
     )
-
     for ((dRow, dCol) in directions) {
         val newRow = cell.row + dRow
         val newCol = cell.col + dCol
-
         val isInsideGrid = newRow >= 0 && newRow < grid.size && newCol >= 0 && newCol < grid[0].size
-
         if (isInsideGrid && grid[newRow][newCol] == 1) {
             neighbors.add(GridCell(newRow, newCol))
         }
     }
-
     return neighbors
 }
 
@@ -61,7 +56,6 @@ fun findPathWithSteps(
         val current = openQueue.poll()!!
 
         if (current in closedSet) continue
-
         closedSet.add(current)
         steps.add(AStarStep(current))
 
@@ -74,7 +68,6 @@ fun findPathWithSteps(
 
         for (neighbor in neighbors) {
             if (neighbor in closedSet) continue
-
             val tentativeG = (gScore[current] ?: Int.MAX_VALUE) + 1
             if (tentativeG < (gScore[neighbor] ?: Int.MAX_VALUE)) {
                 cameFrom[neighbor] = current
@@ -90,11 +83,9 @@ fun findPathWithSteps(
 fun reconstructPath(finishCell: GridCell, cameFrom: Map<GridCell, GridCell>): List<GridCell> {
     var current: GridCell? = finishCell
     val path = mutableListOf<GridCell>()
-
     while (current != null) {
         path.add(current)
         current = cameFrom[current]
     }
-
     return path.reversed()
 }
