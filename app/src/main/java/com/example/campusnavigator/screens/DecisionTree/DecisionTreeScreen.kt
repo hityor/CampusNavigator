@@ -5,14 +5,15 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -74,38 +75,37 @@ fun TreeScreen(context: Context) {
         return
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(16.dp),
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(
-                    brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
-                        colors = listOf(
-                            Color(0xFF1565C0),
-                            Color(0xFF42A5F5)
-                        )
-                    ),
-                    shape = MaterialTheme.shapes.medium
+        item {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        brush = androidx.compose.ui.graphics.Brush.horizontalGradient(
+                            colors = listOf(
+                                Color(0xFF1565C0), Color(0xFF42A5F5)
+                            )
+                        ), shape = MaterialTheme.shapes.medium
+                    )
+                    .shadow(4.dp, shape = MaterialTheme.shapes.medium),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "Выбор места для обеда",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White,
+                    modifier = Modifier.padding(vertical = 16.dp, horizontal = 20.dp)
                 )
-                .shadow(4.dp, shape = MaterialTheme.shapes.medium),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "Выбор места для обеда",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = Color.White,
-                modifier = Modifier.padding(vertical = 16.dp, horizontal = 20.dp)
-            )
+            }
         }
 
-        spinners.forEachIndexed { index, spinner ->
+        items(spinners) { spinner ->
+            val index = spinners.indexOf(spinner)
             var expanded by remember { mutableStateOf(false) }
 
             Text(
@@ -115,9 +115,7 @@ fun TreeScreen(context: Context) {
             )
 
             ExposedDropdownMenuBox(
-                expanded = expanded,
-                onExpandedChange = { expanded = it }
-            ) {
+                expanded = expanded, onExpandedChange = { expanded = it }) {
                 OutlinedTextField(
                     value = spinner.selected.ifEmpty { "Выберите..." },
                     onValueChange = {},
@@ -129,76 +127,75 @@ fun TreeScreen(context: Context) {
                 )
 
                 ExposedDropdownMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false }
-                ) {
+                    expanded = expanded, onDismissRequest = { expanded = false }) {
                     spinner.options.forEach { option ->
-                        DropdownMenuItem(
-                            text = { Text(option) },
-                            onClick = {
-                                spinners = spinners.mapIndexed { i, s ->
-                                    if (i == index) s.copy(selected = option) else s
-                                }
-                                expanded = false
+                        DropdownMenuItem(text = { Text(option) }, onClick = {
+                            spinners = spinners.mapIndexed { i, s ->
+                                if (i == index) s.copy(selected = option) else s
                             }
-                        )
+                            expanded = false
+                        })
                     }
+                }
+            }
+
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                OutlinedButton(
+                    onClick = { showTreeDialog = true }, modifier = Modifier.weight(1f)
+                ) {
+                    Text("Показать дерево")
+                }
+
+                Button(
+                    onClick = {
+                        val userData = spinners.associate { it.name to it.selected }
+                        val (rec, p) = predict(tree!!, userData)
+                        recommendation = rec
+                        path = p
+                        showResult = true
+                    }, modifier = Modifier.weight(1f)
+                ) {
+                    Text("Определить место")
                 }
             }
         }
 
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            OutlinedButton(
-                onClick = { showTreeDialog = true },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Показать дерево")
-            }
-
-            Button(
-                onClick = {
-                    val userData = spinners.associate { it.name to it.selected }
-                    val (rec, p) = predict(tree!!, userData)
-                    recommendation = rec
-                    path = p
-                    showResult = true
-                },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Определить место")
-            }
-        }
 
         if (showResult && recommendation != null) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Text(
-                        text = "Рекомендация: $recommendation",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = Color(0xFF2E7D32)
-                    )
-
-                    if (path.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(12.dp))
+            item {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = Color(0xFFE8F5E9))
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
                         Text(
-                            text = "Путь решения:",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
+                            text = "Рекомендация: $recommendation",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = Color(0xFF2E7D32)
                         )
-                        path.forEach { step ->
+
+                        if (path.isNotEmpty()) {
+                            Spacer(modifier = Modifier.height(12.dp))
                             Text(
-                                text = "   • $step",
-                                fontSize = 12.sp,
-                                color = Color(0xFF1565C0),
-                                fontFamily = FontFamily.Monospace
+                                text = "Путь решения:",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
                             )
+                            path.forEach { step ->
+                                Text(
+                                    text = "   • $step",
+                                    fontSize = 12.sp,
+                                    color = Color(0xFF1565C0),
+                                    fontFamily = FontFamily.Monospace
+                                )
+                            }
                         }
                     }
                 }
@@ -212,7 +209,6 @@ fun TreeScreen(context: Context) {
             tree = tree!!,
             userData = userData,
             showPath = showResult,
-            onDismiss = { showTreeDialog = false }
-        )
+            onDismiss = { showTreeDialog = false })
     }
 }
