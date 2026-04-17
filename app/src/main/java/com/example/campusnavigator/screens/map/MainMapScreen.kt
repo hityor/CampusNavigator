@@ -334,10 +334,6 @@ fun MainMapScreen(
                     }
                 )
             }
-
-            MapMode.COWORKING -> {
-                CoworkingSheetContent()
-            }
         }
     }) {
 

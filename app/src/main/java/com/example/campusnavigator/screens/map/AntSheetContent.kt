@@ -50,39 +50,6 @@ fun AntSheetContent(
             color = NavyPrimary
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-            shape = MaterialTheme.shapes.medium
-        ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text("Стартовая точка", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
-                    Text(
-                        text = if (startCell != null) "Выбрана (${startCell.row}, ${startCell.col})" else "Не выбрана",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = if (startCell != null) NavyPrimary else Color.Gray
-                    )
-                }
-                Button(
-                    onClick = onStartSelected,
-                    enabled = !isAnimating,
-                    shape = RoundedCornerShape(8.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = NavyPrimary)
-                ) {
-                    Text("Выбрать")
-                }
-            }
-        }
-
         Spacer(modifier = Modifier.height(16.dp))
 
         Text("Количество студентов: $studentCount", style = MaterialTheme.typography.bodyMedium)

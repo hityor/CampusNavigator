@@ -94,7 +94,6 @@ fun MapViewContainer(
                     coworkingSpots, coworkingCells
                 )
             }
-            MapMode.COWORKING -> {}
         }
     }
 

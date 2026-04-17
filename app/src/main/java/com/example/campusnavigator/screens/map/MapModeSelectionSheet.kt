@@ -50,8 +50,7 @@ private val modeEntries = listOf(
         "Сгруппировать точки питания по кластерам"
     ),
     ModeEntry(MapMode.GENETIC, Icons.Default.Restaurant, "Оптимальный маршрут по столовым"),
-    ModeEntry(MapMode.ANT, Icons.Default.Explore, "Муравьиный алгоритм - тур по кампусу"),
-    ModeEntry(MapMode.COWORKING, Icons.Default.Laptop, "Найти подходящее место для работы")
+    ModeEntry(MapMode.ANT, Icons.Default.Laptop, "Найти подходящее место для работы"),
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
