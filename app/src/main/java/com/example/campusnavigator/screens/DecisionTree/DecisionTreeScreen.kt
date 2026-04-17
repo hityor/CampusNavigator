@@ -185,6 +185,7 @@ fun TreeScreen(context: Context) {
         TreeDialog(
             tree = tree!!,
             userData = userData,
+            showPath = showResult,
             onDismiss = { showTreeDialog = false }
         )
     }

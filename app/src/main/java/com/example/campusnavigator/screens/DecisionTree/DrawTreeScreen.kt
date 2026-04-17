@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,11 +18,13 @@ import androidx.compose.ui.window.Dialog
 import com.example.campusnavigator.algorithms.convertJsonToGraph
 import com.example.campusnavigator.algorithms.predict
 import org.json.JSONObject
+import kotlin.collections.emptyList
 
 @Composable
 fun TreeDialog(
     tree: JSONObject,
     userData: Map<String, String>,
+    showPath: Boolean,
     onDismiss: () -> Unit
 ) {
     Dialog(onDismissRequest = onDismiss) {
@@ -52,7 +55,11 @@ fun TreeDialog(
                     }
                 }
 
-                Divider(modifier = Modifier.padding(vertical = 8.dp))
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = DividerDefaults.Thickness,
+                    color = DividerDefaults.color
+                )
 
                 Box(
                     modifier = Modifier
@@ -62,9 +69,10 @@ fun TreeDialog(
                         .background(Color(0xFFF5F5F5), shape = MaterialTheme.shapes.medium)
                         .padding(24.dp)
                 ) {
+                    val path = if (showPath) {predict(tree,userData).second } else {emptyList()}
                     DrawTreeRoot(
-                        node = convertJsonToGraph(tree, predict(tree, userData).second),
-                        path = predict(tree, userData).second
+                        node = convertJsonToGraph(tree, path),
+                        path = path
                     )
                 }
             }
