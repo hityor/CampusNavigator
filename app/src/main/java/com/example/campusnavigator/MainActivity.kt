@@ -14,10 +14,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.campusnavigator.algorithms.NeuralAlgorithm
+import com.example.campusnavigator.screens.DecisionTree.TreeScreen
 import com.example.campusnavigator.screens.DrawingBottomSheet
 import com.example.campusnavigator.screens.HomeScreen
 import com.example.campusnavigator.screens.SplashScreen
-import com.example.campusnavigator.screens.DecisionTree.TreeScreen
 import com.example.campusnavigator.screens.map.MainMapScreen
 import com.example.campusnavigator.ui.theme.CampusNavigatorTheme
 import kotlinx.coroutines.Dispatchers

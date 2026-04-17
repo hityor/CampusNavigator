@@ -3,7 +3,6 @@ package com.example.campusnavigator.algorithms
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
 import java.util.PriorityQueue
-import kotlin.collections.emptyList
 import kotlin.math.abs
 
 data class AStarStep(

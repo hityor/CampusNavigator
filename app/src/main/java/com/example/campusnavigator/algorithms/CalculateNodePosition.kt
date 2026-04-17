@@ -39,15 +39,18 @@ fun calculateNodePositions(root: GraphNode): Pair<List<TreeNodePosition>, androi
         val startX = centerX - levelWidth / 2
 
         for ((index, node) in nodes.withIndex()) {
-            val xPos = startX + (index + 1) * minHorizontalSpacing + index * nodeWidth + nodeWidth / 2
+            val xPos =
+                startX + (index + 1) * minHorizontalSpacing + index * nodeWidth + nodeWidth / 2
 
-            positions.add(TreeNodePosition(
-                node = node,
-                x = xPos,
-                y = level * (nodeHeight + verticalSpacing),
-                width = nodeWidth,
-                height = nodeHeight
-            ))
+            positions.add(
+                TreeNodePosition(
+                    node = node,
+                    x = xPos,
+                    y = level * (nodeHeight + verticalSpacing),
+                    width = nodeWidth,
+                    height = nodeHeight
+                )
+            )
         }
     }
 

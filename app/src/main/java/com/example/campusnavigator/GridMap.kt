@@ -5,10 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
-import com.example.campusnavigator.ui.theme.GreenAccent
 import com.example.campusnavigator.ui.theme.NavyPrimary
 import com.example.campusnavigator.ui.theme.TextSecondary
 import org.maplibre.android.geometry.LatLng

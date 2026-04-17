@@ -115,10 +115,12 @@ fun AStarSheetContent(
             IconButton(
                 onClick = onClear,
                 enabled = startCell != null || finishCell != null,
-                modifier = Modifier.size(52.dp).background(
-                    color = Color.LightGray.copy(alpha = 0.2f),
-                    shape = RoundedCornerShape(14.dp)
-                )
+                modifier = Modifier
+                    .size(52.dp)
+                    .background(
+                        color = Color.LightGray.copy(alpha = 0.2f),
+                        shape = RoundedCornerShape(14.dp)
+                    )
             ) {
                 Icon(Icons.Default.Refresh, contentDescription = null)
             }

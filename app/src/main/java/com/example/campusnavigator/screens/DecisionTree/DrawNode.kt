@@ -3,9 +3,19 @@ package com.example.campusnavigator.screens.DecisionTree
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -55,7 +65,9 @@ fun DrawTreeRoot(node: GraphNode, path: List<String>) {
 
                 if (leftChild != null) {
                     drawLine(
-                        color = if (leftChild.node.isHighlighted) Color(0xFF00C853) else Color(0xFF90A4AE),
+                        color = if (leftChild.node.isHighlighted) Color(0xFF00C853) else Color(
+                            0xFF90A4AE
+                        ),
                         start = Offset(pos.x + pos.width / 2, pos.y + pos.height),
                         end = Offset(leftChild.x + leftChild.width / 2, leftChild.y),
                         strokeWidth = lineHeight
@@ -63,7 +75,9 @@ fun DrawTreeRoot(node: GraphNode, path: List<String>) {
                 }
                 if (rightChild != null) {
                     drawLine(
-                        color = if (rightChild.node.isHighlighted) Color(0xFF00C853) else Color(0xFF90A4AE),
+                        color = if (rightChild.node.isHighlighted) Color(0xFF00C853) else Color(
+                            0xFF90A4AE
+                        ),
                         start = Offset(pos.x + pos.width / 2, pos.y + pos.height),
                         end = Offset(rightChild.x + rightChild.width / 2, rightChild.y),
                         strokeWidth = lineHeight
@@ -83,8 +97,7 @@ fun DrawTreeRoot(node: GraphNode, path: List<String>) {
 
             val text = if (pos.node.isLeaf) {
                 "${pos.node.result}"
-            }
-            else {
+            } else {
                 "${pos.node.feature}\n== ${pos.node.value}"
             }
 
@@ -157,7 +170,9 @@ fun DrawTreeNode(
 
         if (!node.isLeaf) {
             if (node.left != null || node.right != null) {
-                Canvas(modifier = Modifier.width(2.dp).height(verticalSpacing / 2)) {
+                Canvas(modifier = Modifier
+                    .width(2.dp)
+                    .height(verticalSpacing / 2)) {
                     drawLine(
                         color = if (node.isHighlighted) Color(0xFFEF5350) else Color(0xFF90A4AE),
                         start = Offset(size.width / 2, 0f),
@@ -166,7 +181,9 @@ fun DrawTreeNode(
                     )
                 }
 
-                Canvas(modifier = Modifier.fillMaxWidth().height(2.dp)) {
+                Canvas(modifier = Modifier
+                    .fillMaxWidth()
+                    .height(2.dp)) {
                     drawLine(
                         color = if (node.isHighlighted) Color(0xFFEF5350) else Color(0xFF90A4AE),
                         start = Offset(0f, size.height / 2),
@@ -189,7 +206,9 @@ fun DrawTreeNode(
                         if (node.left != null) {
                             Canvas(modifier = Modifier.fillMaxSize()) {
                                 drawLine(
-                                    color = if (node.left.isHighlighted) Color(0xFFEF5350) else Color(0xFF90A4AE),
+                                    color = if (node.left.isHighlighted) Color(0xFFEF5350) else Color(
+                                        0xFF90A4AE
+                                    ),
                                     start = Offset(size.width / 2, 0f),
                                     end = Offset(size.width / 2, size.height),
                                     strokeWidth = 3f
@@ -208,7 +227,9 @@ fun DrawTreeNode(
                         if (node.right != null) {
                             Canvas(modifier = Modifier.fillMaxSize()) {
                                 drawLine(
-                                    color = if (node.right.isHighlighted) Color(0xFFEF5350) else Color(0xFF90A4AE),
+                                    color = if (node.right.isHighlighted) Color(0xFFEF5350) else Color(
+                                        0xFF90A4AE
+                                    ),
                                     start = Offset(size.width / 2, 0f),
                                     end = Offset(size.width / 2, size.height),
                                     strokeWidth = 3f

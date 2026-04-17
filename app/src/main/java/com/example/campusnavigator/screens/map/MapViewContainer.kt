@@ -17,7 +17,6 @@ import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.LatLngToEpsg3857
 import com.example.campusnavigator.epsg3857ToGridCell
 import com.example.campusnavigator.findNearestWalkableCell
-import com.example.campusnavigator.isInsideGrid
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
 import com.example.campusnavigator.screens.map.models.MapMode
 import org.maplibre.android.MapLibre
@@ -89,101 +88,102 @@ fun MapViewContainer(
     AndroidView(
         modifier = modifier,
         factory = { ctx ->
-        MapView(ctx).apply {
-            onCreate(Bundle())
-            getMapAsync { map ->
+            MapView(ctx).apply {
+                onCreate(Bundle())
+                getMapAsync { map ->
 
-                map.setStyle("https://tiles.openfreemap.org/styles/liberty") { style ->
+                    map.setStyle("https://tiles.openfreemap.org/styles/liberty") { style ->
 
-                    val baseSource = ImageSource(
-                        "grid-base-source",
-                        latLngQuad,
-                        baseBitmap
-                    )
-                    style.addSource(baseSource)
-
-                    val overlaySource = ImageSource(
-                        "grid-overlay-source",
-                        latLngQuad,
-                        overlayBitmap
-                    )
-                    style.addSource(overlaySource)
-
-                    val baseLayer = RasterLayer(
-                        "grid-base-layer",
-                        "grid-base-source"
-                    )
-                    style.addLayer(baseLayer)
-
-                    val overlayLayer = RasterLayer(
-                        "grid-overlay-layer",
-                        "grid-overlay-source"
-                    )
-                    style.addLayer(overlayLayer)
-
-                    mapRef = map
-                }
-
-                map.addOnMapClickListener { point ->
-                    if (isAnimatingState) return@addOnMapClickListener true
-
-                    val (x, y) = LatLngToEpsg3857(point.latitude, point.longitude)
-                    val tappedCell = epsg3857ToGridCell(x, y, gridMap)
-
-                    if (currentModeState == MapMode.ASTAR) {
-                        val selectedCell = findNearestWalkableCell(
-                            tappedCell,
-                            gridMap,
-                            maxRadius = 3
+                        val baseSource = ImageSource(
+                            "grid-base-source",
+                            latLngQuad,
+                            baseBitmap
                         )
-                        if (isDrawingObstaclesState) {
-                            if (selectedCell != null) {
-                                onObstacleTappedState(tappedCell)
-                            }
-                        } else {
-                            if (selectedCell != null) {
-                                onCellSelectedState(selectedCell)
-                            }
-                        }
+                        style.addSource(baseSource)
+
+                        val overlaySource = ImageSource(
+                            "grid-overlay-source",
+                            latLngQuad,
+                            overlayBitmap
+                        )
+                        style.addSource(overlaySource)
+
+                        val baseLayer = RasterLayer(
+                            "grid-base-layer",
+                            "grid-base-source"
+                        )
+                        style.addLayer(baseLayer)
+
+                        val overlayLayer = RasterLayer(
+                            "grid-overlay-layer",
+                            "grid-overlay-source"
+                        )
+                        style.addLayer(overlayLayer)
+
+                        mapRef = map
                     }
 
-                    true
+                    map.addOnMapClickListener { point ->
+                        if (isAnimatingState) return@addOnMapClickListener true
+
+                        val (x, y) = LatLngToEpsg3857(point.latitude, point.longitude)
+                        val tappedCell = epsg3857ToGridCell(x, y, gridMap)
+
+                        if (currentModeState == MapMode.ASTAR) {
+                            val selectedCell = findNearestWalkableCell(
+                                tappedCell,
+                                gridMap,
+                                maxRadius = 3
+                            )
+                            if (isDrawingObstaclesState) {
+                                if (selectedCell != null) {
+                                    onObstacleTappedState(tappedCell)
+                                }
+                            } else {
+                                if (selectedCell != null) {
+                                    onCellSelectedState(selectedCell)
+                                }
+                            }
+                        }
+
+                        true
+                    }
+
+                    map.uiSettings.isLogoEnabled = false
+                    map.uiSettings.isAttributionEnabled = false
+                    map.uiSettings.apply {
+                        isZoomGesturesEnabled = true
+                        isScrollGesturesEnabled = true
+                        isRotateGesturesEnabled = true
+                        isTiltGesturesEnabled = true
+                    }
+
+                    val bitmapBounds = LatLngBounds.Builder()
+                        .include(latLngQuad.topLeft)
+                        .include(latLngQuad.topRight)
+                        .include(latLngQuad.bottomLeft)
+                        .include(latLngQuad.bottomRight)
+                        .build()
+
+                    val latPad = (bitmapBounds.latitudeNorth - bitmapBounds.latitudeSouth) * 0.25
+                    val lonPad = (bitmapBounds.longitudeEast - bitmapBounds.longitudeWest) * 0.18
+
+                    val tightBounds = LatLngBounds.from(
+                        bitmapBounds.latitudeNorth - latPad,
+                        bitmapBounds.longitudeEast - lonPad,
+                        bitmapBounds.latitudeSouth + latPad,
+                        bitmapBounds.longitudeWest + lonPad
+                    )
+
+                    map.setLatLngBoundsForCameraTarget(tightBounds)
+
+                    map.setMinZoomPreference(14.5)
+                    map.setMaxZoomPreference(20.0)
+
+                    map.cameraPosition =
+                        CameraPosition.Builder().target(LatLng(56.469449, 84.947971)).zoom(14.5)
+                            .build()
                 }
-
-                map.uiSettings.isLogoEnabled = false
-                map.uiSettings.isAttributionEnabled = false
-                map.uiSettings.apply {
-                    isZoomGesturesEnabled = true
-                    isScrollGesturesEnabled = true
-                    isRotateGesturesEnabled = true
-                    isTiltGesturesEnabled = true
-                }
-
-                val bitmapBounds = LatLngBounds.Builder()
-                    .include(latLngQuad.topLeft)
-                    .include(latLngQuad.topRight)
-                    .include(latLngQuad.bottomLeft)
-                    .include(latLngQuad.bottomRight)
-                    .build()
-
-                val latPad = (bitmapBounds.latitudeNorth - bitmapBounds.latitudeSouth) * 0.25
-                val lonPad = (bitmapBounds.longitudeEast - bitmapBounds.longitudeWest) * 0.18
-
-                val tightBounds = LatLngBounds.from(
-                    bitmapBounds.latitudeNorth - latPad,
-                    bitmapBounds.longitudeEast - lonPad,
-                    bitmapBounds.latitudeSouth + latPad,
-                    bitmapBounds.longitudeWest + lonPad
-                )
-
-                map.setLatLngBoundsForCameraTarget(tightBounds)
-
-                map.setMinZoomPreference(14.5)
-                map.setMaxZoomPreference(20.0)
-
-                map.cameraPosition =
-                    CameraPosition.Builder().target(LatLng(56.469449, 84.947971)).zoom(14.5).build()
             }
-        }
-    })
+        })
 }

@@ -36,8 +36,7 @@ fun convertJsonToGraph(node: JSONObject, path: List<String>, nodeId: String = "r
         val isHighlighted = if (isLeaf) {
             path.lastOrNull()?.contains(result ?: "") == true ||
                     path.any { it.contains(result ?: "") }
-        }
-        else {
+        } else {
             val condition = "$feature == $value"
             path.any { it == condition || it.contains(condition) }
         }
@@ -90,7 +89,6 @@ val featureOptions = mapOf(
     "queue_tolerance" to listOf("low", "medium", "high"),
     "weather" to listOf("good", "bad")
 )
-
 
 
 fun predict(node: JSONObject, userData: Map<String, String>): Pair<String, List<String>> {

@@ -36,7 +36,6 @@ import com.example.campusnavigator.algorithms.runKMeans
 import com.example.campusnavigator.createAStarOverlayBitmap
 import com.example.campusnavigator.createEmptyOverlayBitmap
 import com.example.campusnavigator.isInsideGrid
-import com.example.campusnavigator.isWalkable
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
 import com.example.campusnavigator.screens.map.models.MapMode
 import com.example.campusnavigator.ui.theme.NavyPrimary
@@ -223,7 +222,7 @@ fun MainMapScreen(
                                 }
 
                                 path = resultPath ?: emptyList()
-                                routeNotFound = resultPath== null
+                                routeNotFound = resultPath == null
                                 isAnimating = false
                             }
 

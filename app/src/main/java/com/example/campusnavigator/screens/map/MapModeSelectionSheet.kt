@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
 import androidx.compose.material.icons.filled.Explore
@@ -17,26 +16,21 @@ import androidx.compose.material.icons.filled.Laptop
 import androidx.compose.material.icons.filled.Navigation
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.ScatterPlot
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.example.campusnavigator.screens.map.models.MapMode
 import com.example.campusnavigator.ui.theme.GreenAccent
-import com.example.campusnavigator.ui.theme.GreenLight
 import com.example.campusnavigator.ui.theme.NavyPrimary
 import com.example.campusnavigator.ui.theme.TextSecondary
 
@@ -48,7 +42,11 @@ private data class ModeEntry(
 
 private val modeEntries = listOf(
     ModeEntry(MapMode.ASTAR, Icons.Default.Navigation, "Построить маршрут между двумя точками"),
-    ModeEntry(MapMode.CLUSTERING, Icons.Default.ScatterPlot, "Сгруппировать точки питания по кластерам"),
+    ModeEntry(
+        MapMode.CLUSTERING,
+        Icons.Default.ScatterPlot,
+        "Сгруппировать точки питания по кластерам"
+    ),
     ModeEntry(MapMode.GENETIC, Icons.Default.Restaurant, "Оптимальный маршрут по столовым"),
     ModeEntry(MapMode.ANT, Icons.Default.Explore, "Муравьиный алгоритм - тур по кампусу"),
     ModeEntry(MapMode.COWORKING, Icons.Default.Laptop, "Найти подходящее место для работы")
