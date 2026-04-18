@@ -178,11 +178,6 @@ fun GeneticSheetContent(
                 Icon(Icons.Default.Refresh, contentDescription = null)
             }
         }
-
-        if (route != null) {
-            Spacer(Modifier.height(16.dp))
-            GeneticResultBlock(route = route, places = places)
-        }
     }
 }
 

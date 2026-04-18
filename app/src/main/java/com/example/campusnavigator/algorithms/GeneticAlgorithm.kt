@@ -28,7 +28,7 @@ class GeneticAlgorithm(
     private val requiredItems: Set<String>,
     private val currentMinuteOfDay: Int,
     private val populationSize: Int = 40,
-    private val generations: Int = 60,
+    private val generations: Int = 40,
     private val mutationRate: Double = 0.25,
     private val eliteCount: Int = 2,
     private val tournamentSize: Int = 3,
