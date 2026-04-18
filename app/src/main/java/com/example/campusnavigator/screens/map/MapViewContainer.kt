@@ -16,10 +16,12 @@ import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.LatLngToEpsg3857
 import com.example.campusnavigator.algorithms.AntResult
+import com.example.campusnavigator.algorithms.GeneticRoute
 import com.example.campusnavigator.epsg3857ToGridCell
 import com.example.campusnavigator.findNearestWalkableCell
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
 import com.example.campusnavigator.screens.map.models.CoworkingPlace
+import com.example.campusnavigator.screens.map.models.FoodPlace
 import com.example.campusnavigator.screens.map.models.MapMode
 import org.maplibre.android.MapLibre
 import org.maplibre.android.camera.CameraPosition
@@ -51,7 +53,13 @@ fun MapViewContainer(
     antResult: AntResult?,
     onAntStartSelected: (GridCell) -> Unit,
     coworkingSpots: List<CoworkingPlace>,
-    coworkingCells: List<GridCell>
+    coworkingCells: List<GridCell>,
+
+    geneticStartCell: GridCell?,
+    geneticRoute: GeneticRoute?,
+    onGeneticStartSelected: (GridCell) -> Unit,
+    foodPlaces: List<FoodPlace>,
+    foodPlaceCells: List<GridCell>
 ) {
     val context = LocalContext.current
     remember { MapLibre.getInstance(context) }
@@ -61,6 +69,7 @@ fun MapViewContainer(
     val isDrawingObstaclesState by rememberUpdatedState(isDrawingObstacles)
     val onObstacleTappedState by rememberUpdatedState(onObstacleTapped)
     val isAnimatingState by rememberUpdatedState(isAnimating)
+    val onGeneticStartSelectedState by rememberUpdatedState(onGeneticStartSelected)
 
     var mapRef by remember { mutableStateOf<MapLibreMap?>(null) }
 
@@ -78,15 +87,28 @@ fun MapViewContainer(
         source?.setImage(overlayBitmap)
     }
 
-    LaunchedEffect(mapRef, currentMode, startCell, finishCell, path, clusteredPlaces,
-        antStartCell, antResult) {
+    LaunchedEffect(
+        mapRef, currentMode, startCell, finishCell, path, clusteredPlaces,
+        antStartCell, antResult,
+        geneticStartCell, geneticRoute
+    ) {
         val map = mapRef ?: return@LaunchedEffect
         map.clear()
 
         when (currentMode) {
             MapMode.ASTAR -> renderAStar(map, context, gridMap, startCell, finishCell, path)
             MapMode.CLUSTERING -> renderClustering(map, context, clusteredPlaces)
-            MapMode.GENETIC -> {}
+            MapMode.GENETIC -> {
+                renderGenetic(
+                    map = map,
+                    context = context,
+                    gridMap = gridMap,
+                    startCell = geneticStartCell,
+                    allPlaces = foodPlaces,
+                    placeCells = foodPlaceCells,
+                    route = geneticRoute
+                )
+            }
             MapMode.ANT -> {
                 renderAnt(
                     map, context, gridMap,
@@ -162,6 +184,14 @@ fun MapViewContainer(
                             val selectedCell = findNearestWalkableCell(tappedCell, gridMap, maxRadius = 3)
                             if (selectedCell != null && !isAnimatingState) {
                                 onAntStartSelected(selectedCell)
+                            }
+                            return@addOnMapClickListener true
+                        }
+
+                        if (currentModeState == MapMode.GENETIC) {
+                            val selectedCell = findNearestWalkableCell(tappedCell, gridMap, maxRadius = 3)
+                            if (selectedCell != null && !isAnimatingState) {
+                                onGeneticStartSelectedState(selectedCell)
                             }
                             return@addOnMapClickListener true
                         }

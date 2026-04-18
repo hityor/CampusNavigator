@@ -10,9 +10,10 @@ import androidx.core.graphics.createBitmap
 import com.example.campusnavigator.GridCell
 import com.example.campusnavigator.GridMap
 import com.example.campusnavigator.algorithms.AntResult
-import com.example.campusnavigator.epsg3857ToGridCell
+import com.example.campusnavigator.algorithms.GeneticRoute
 import com.example.campusnavigator.gridCellToLatLng
 import com.example.campusnavigator.screens.map.models.ClusteredFoodPlace
+import com.example.campusnavigator.screens.map.models.FoodPlace
 import com.example.campusnavigator.ui.theme.GreenAccent
 import com.example.campusnavigator.ui.theme.NavyPrimary
 import org.maplibre.android.annotations.IconFactory
@@ -160,5 +161,59 @@ fun renderAnt(
                 .title("${spot.name} (комфорт: ${"%.1f".format(spot.comfort)})")
                 .icon(icon)
         )
+    }
+}
+
+fun renderGenetic(
+    map: MapLibreMap,
+    context: Context,
+    gridMap: GridMap,
+    startCell: GridCell?,
+    allPlaces: List<FoodPlace>,
+    placeCells: List<GridCell>,
+    route: GeneticRoute?
+) {
+    val iconFactory = IconFactory.getInstance(context)
+
+    if (startCell != null) {
+        val pos = gridCellToLatLng(startCell.row, startCell.col, gridMap)
+        val icon = iconFactory.fromBitmap(
+            createLabeledMarkerBitmap("S", GreenAccent.toArgb())
+        )
+        map.addMarker(MarkerOptions().position(pos).title("Старт").icon(icon))
+    }
+
+    val visited = route?.visitedPlaceIndices ?: emptyList()
+    val visitedSet = visited.toSet()
+
+    allPlaces.forEachIndexed { idx, place ->
+        val pos = gridCellToLatLng(placeCells[idx].row, placeCells[idx].col, gridMap)
+        val inRoute = idx in visitedSet
+        val bitmap = if (inRoute) {
+            val order = visited.indexOf(idx) + 1
+            createLabeledMarkerBitmap(order.toString(), NavyPrimary.toArgb())
+        } else {
+            createMarkerBitmap(Color.LTGRAY)
+        }
+        val icon = iconFactory.fromBitmap(bitmap)
+        map.addMarker(
+            MarkerOptions()
+                .position(pos)
+                .title(place.name)
+                .icon(icon)
+        )
+    }
+
+    if (route != null && route.segments.isNotEmpty()) {
+        for (segment in route.segments) {
+            if (segment.size < 2) continue
+            val pts = segment.map { gridCellToLatLng(it.row, it.col, gridMap) }
+            map.addPolyline(
+                PolylineOptions()
+                    .addAll(pts)
+                    .color(GreenAccent.toArgb())
+                    .width(5f)
+            )
+        }
     }
 }

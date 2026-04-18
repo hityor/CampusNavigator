@@ -314,7 +314,7 @@ fun GridMap.createAntOverlayBitmap(
                 if (value > 1.0) {
                     val alpha = (value / maxVal * 200).toInt().coerceIn(0, 255)
                     val paint = Paint().apply {
-                        color = Color.argb(alpha, 255, 0, 0) // красный
+                        color = Color.argb(alpha, 255, 0, 0)
                     }
                     canvas.drawRect(
                         c * scale.toFloat(), r * scale.toFloat(),
@@ -334,7 +334,7 @@ fun GridMap.createAntOverlayBitmap(
                 if (value > 1.0) {
                     val alpha = (value / maxVal * 200).toInt().coerceIn(0, 255)
                     val paint = Paint().apply {
-                        color = Color.argb(alpha, 0, 255, 0) // зелёный
+                        color = Color.argb(alpha, 0, 255, 0)
                     }
                     canvas.drawRect(
                         c * scale.toFloat(), r * scale.toFloat(),

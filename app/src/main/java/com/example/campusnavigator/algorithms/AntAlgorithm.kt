@@ -36,7 +36,7 @@ class AntColonyOptimization(
     private val homePheromoneDeposit: Double = 8.0,
     private val foodPheromoneDeposit: Double = 15.0,
     private val alpha: Double = 1.0,
-    private val beta: Double = 2.0,
+    private val beta: Double = 1.0,
     private val random: Random = Random,
     val onStep: ((
         homePheromone: Array<DoubleArray>,
@@ -70,6 +70,10 @@ class AntColonyOptimization(
         return locations.indices.filter { remainingCapacity[it] > 0 }
     }
 
+    private fun manhattanDistance(a: GridCell, b: GridCell): Int {
+        return kotlin.math.abs(a.row - b.row) + kotlin.math.abs(a.col - b.col)
+    }
+
     private fun searchHeuristic(from: GridCell, to: GridCell): Double {
         var attraction = 1.0
         val available = getAvailableLocations()
@@ -82,10 +86,6 @@ class AntColonyOptimization(
             }
         }
         return attraction
-    }
-
-    private fun manhattanDistance(a: GridCell, b: GridCell): Int {
-        return kotlin.math.abs(a.row - b.row) + kotlin.math.abs(a.col - b.col)
     }
 
     private fun chooseNextCell(ant: Ant): GridCell? {

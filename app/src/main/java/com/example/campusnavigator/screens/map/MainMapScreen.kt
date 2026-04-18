@@ -21,6 +21,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -47,6 +48,8 @@ import kotlinx.coroutines.withContext
 import org.maplibre.android.geometry.LatLngQuad
 import com.example.campusnavigator.algorithms.AntColonyOptimization
 import com.example.campusnavigator.algorithms.AntResult
+import com.example.campusnavigator.algorithms.GeneticAlgorithm
+import com.example.campusnavigator.algorithms.GeneticRoute
 import com.example.campusnavigator.screens.map.models.CoworkingPlace
 import com.example.campusnavigator.screens.map.sampleCoworkingPlaces
 import com.example.campusnavigator.LatLngToEpsg3857
@@ -55,6 +58,7 @@ import com.example.campusnavigator.createAntResultOverlayBitmap
 import com.example.campusnavigator.epsg3857ToGridCell
 import com.example.campusnavigator.findNearestWalkableCell
 import kotlinx.coroutines.Job
+import java.util.Calendar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,6 +96,23 @@ fun MainMapScreen(
     var antIsAnimating by remember { mutableStateOf(false) }
     var antNumAnts by remember { mutableIntStateOf(100) }
     var antPlacedStudents by remember { mutableStateOf(0) }
+
+    val foodPlaces = remember { sampleFoodPlaces }
+    val foodPlaceCells = remember(foodPlaces) {
+        foodPlaces.map { spot ->
+            val (x, y) = LatLngToEpsg3857(spot.lat, spot.lon)
+            val rawCell = epsg3857ToGridCell(x, y, gridMap)
+            findNearestWalkableCell(rawCell, gridMap, maxRadius = 50) ?: rawCell
+        }
+    }
+    var geneticJob by remember { mutableStateOf<Job?>(null) }
+    var geneticStartCell by remember { mutableStateOf<GridCell?>(null) }
+    var geneticSelectedItems by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var geneticIsRunning by remember { mutableStateOf(false) }
+    var geneticRoute by remember { mutableStateOf<GeneticRoute?>(null) }
+    var geneticProgress by remember { mutableFloatStateOf(0f) }
+    var geneticGenerationText by remember { mutableStateOf("") }
+    val geneticTotalGenerations = 60
 
     val coworkingSpots = remember { sampleCoworkingPlaces }
     val coworkingLocationCells = remember(coworkingSpots) {
@@ -155,10 +176,22 @@ fun MainMapScreen(
         antPlacedStudents = 0
     }
 
+    fun clearGeneticStates() {
+        geneticJob?.cancel()
+        geneticJob = null
+        geneticStartCell = null
+        geneticSelectedItems = emptySet()
+        geneticIsRunning = false
+        geneticRoute = null
+        geneticProgress = 0f
+        geneticGenerationText = ""
+    }
+
     fun resetAllModeStates() {
         clearAStarStates()
         clearClusteringState()
         clearAntStates()
+        clearGeneticStates()
     }
 
     BottomSheetScaffold(topBar = {
@@ -280,7 +313,70 @@ fun MainMapScreen(
             }
 
             MapMode.GENETIC -> {
-                GeneticSheetContent()
+                GeneticSheetContent(
+                    startCell = geneticStartCell,
+                    selectedItems = geneticSelectedItems,
+                    onToggleItem = { item ->
+                        geneticSelectedItems = if (item in geneticSelectedItems) {
+                            geneticSelectedItems - item
+                        } else {
+                            geneticSelectedItems + item
+                        }
+                    },
+                    isRunning = geneticIsRunning,
+                    progress = geneticProgress,
+                    generationText = geneticGenerationText,
+                    route = geneticRoute,
+                    places = foodPlaces,
+                    onRun = {
+                        val start = geneticStartCell ?: return@GeneticSheetContent
+                        val required = geneticSelectedItems
+                        if (required.isEmpty()) return@GeneticSheetContent
+
+                        geneticJob?.cancel()
+                        geneticJob = scope.launch {
+                            geneticIsRunning = true
+                            geneticRoute = null
+                            geneticProgress = 0f
+                            geneticGenerationText = "Подготовка расстояний..."
+
+                            val cal = Calendar.getInstance()
+                            val minuteOfDay =
+                                cal.get(Calendar.HOUR_OF_DAY) * 60 + cal.get(Calendar.MINUTE)
+
+                            val ga = GeneticAlgorithm(
+                                gridMap = gridMap,
+                                startCell = start,
+                                places = foodPlaces,
+                                placeCells = foodPlaceCells,
+                                requiredItems = required,
+                                currentMinuteOfDay = minuteOfDay,
+                                populationSize = 40,
+                                generations = geneticTotalGenerations,
+                                onGeneration = { g ->
+                                    withContext(Dispatchers.Main) {
+                                        geneticRoute = g.bestRoute
+                                        geneticProgress =
+                                            g.generation.toFloat() / geneticTotalGenerations
+                                        geneticGenerationText =
+                                            "Поколение ${g.generation} / $geneticTotalGenerations"
+                                    }
+                                    delay(300)
+                                }
+                            )
+
+                            val best = withContext(Dispatchers.Default) { ga.run() }
+                            geneticRoute = best
+                            geneticProgress = 1f
+                            geneticGenerationText =
+                                "Готово: $geneticTotalGenerations поколений"
+                            geneticIsRunning = false
+                        }
+                    },
+                    onClear = {
+                        clearGeneticStates()
+                    }
+                )
             }
 
             MapMode.ANT -> {
@@ -404,7 +500,18 @@ fun MainMapScreen(
                 antResult = null
             },
             coworkingSpots = coworkingSpots,
-            coworkingCells = coworkingLocationCells
+            coworkingCells = coworkingLocationCells,
+
+            geneticStartCell = geneticStartCell,
+            geneticRoute = geneticRoute,
+            onGeneticStartSelected = { cell ->
+                if (!geneticIsRunning) {
+                    geneticStartCell = cell
+                    geneticRoute = null
+                }
+            },
+            foodPlaces = foodPlaces,
+            foodPlaceCells = foodPlaceCells
         )
     }
 

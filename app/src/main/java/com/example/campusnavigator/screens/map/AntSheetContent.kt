@@ -44,7 +44,7 @@ fun AntSheetContent(
             .padding(horizontal = 16.dp, vertical = 8.dp)
     ) {
         Text(
-            text = "Распределение студентов по коворкингам",
+            text = "Распределение студентов по локациям",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.SemiBold,
             color = NavyPrimary
@@ -56,7 +56,7 @@ fun AntSheetContent(
         Slider(
             value = studentCount.toFloat(),
             onValueChange = { studentCount = it.roundToInt() },
-            valueRange = 1f..100f,
+            valueRange = 1f..50f,
             steps = 49,
             enabled = !isAnimating,
             colors = SliderDefaults.colors(thumbColor = GreenAccent, activeTrackColor = GreenAccent)
@@ -64,11 +64,11 @@ fun AntSheetContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        Text("Муравьёв в колонии: $numAnts", style = MaterialTheme.typography.bodyMedium)
+        Text("Муравьев в колонии: $numAnts", style = MaterialTheme.typography.bodyMedium)
         Slider(
             value = numAnts.toFloat(),
             onValueChange = { onNumAntsChange(it.roundToInt()) },
-            valueRange = 10f..500f,
+            valueRange = 10f..1000f,
             steps = 49,
             enabled = !isAnimating,
             colors = SliderDefaults.colors(thumbColor = NavyPrimary, activeTrackColor = NavyPrimary)
