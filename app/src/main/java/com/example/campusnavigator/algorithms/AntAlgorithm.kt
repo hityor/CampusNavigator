@@ -90,15 +90,27 @@ class AntColonyOptimization(
 
     private fun chooseNextCell(ant: Ant): GridCell? {
         val current = ant.position
-        val neighbors = directions.mapNotNull { (dr, dc) ->
+        var neighbors = directions.mapNotNull { (dr, dc) ->
             val nr = current.row + dr
             val nc = current.col + dc
-            if (nr in 0 until height && nc in 0 until width && isWalkable(GridCell(nr, nc), gridMap)) {
+            if (nr in 0 until height && nc in 0 until width && isWalkable(
+                    GridCell(nr, nc),
+                    gridMap
+                )
+            )
                 GridCell(nr, nc)
-            } else null
+            else null
         }.filter { it != ant.previousCell }
 
-        if (neighbors.isEmpty()) return null
+        if (neighbors.isEmpty()) {
+            if (ant.path.size >= 2) {
+                val backCell = ant.path[ant.path.size - 2]
+                ant.path.removeAt(ant.path.size - 1)
+                ant.previousCell = current
+                return backCell
+            }
+            return null
+        }
 
         val probabilities = DoubleArray(neighbors.size)
         var sum = 0.0
@@ -159,6 +171,7 @@ class AntColonyOptimization(
                             ant.previousCell = null
                         }
                     }
+
                     AntState.RETURNING -> {
                         if (next == homeCell) {
                             ant.state = AntState.SEARCHING

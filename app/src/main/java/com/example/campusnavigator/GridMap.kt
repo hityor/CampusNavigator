@@ -7,10 +7,10 @@ import android.graphics.Color
 import android.graphics.Paint
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
-import com.example.campusnavigator.ui.theme.NavyPrimary
-import com.example.campusnavigator.ui.theme.TextSecondary
 import com.example.campusnavigator.algorithms.Ant
 import com.example.campusnavigator.algorithms.AntState
+import com.example.campusnavigator.ui.theme.NavyPrimary
+import com.example.campusnavigator.ui.theme.TextSecondary
 import org.maplibre.android.geometry.LatLng
 import org.maplibre.android.geometry.LatLngQuad
 import kotlin.math.PI
@@ -134,7 +134,10 @@ fun GridMap.createAStarOverlayBitmap(
         canvas.drawCell(current, scale, currentPaint)
     }
 
-    val obstaclePaint = Paint().apply { color = Color.RED }
+    val obstaclePaint = Paint().apply {
+        color = Color.RED
+        alpha = 150
+    }
     canvas.drawCells(obstacles, scale, obstaclePaint)
 
     return bitmap
